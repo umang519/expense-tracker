@@ -149,7 +149,7 @@ queries to that user. A user can never query another user's data.
 ## 7. Post-Launch Roadmap (next plan)
 
 The MVP works. These build on it, roughly in priority order. Each is independent —
-tackle them one at a time with Claude Code, same as before.
+tackle them one at a time with Claude Code, same as before. completed
 
 ### Phase 9 — Import historical data (HIGHEST PRIORITY)
 ~5 months of real data already exists in the original Excel sheet, but the app starts empty,
