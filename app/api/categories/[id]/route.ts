@@ -28,9 +28,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   await connectDB();
 
+  const updateData = { ...parsed.data };
+  if (typeof updateData.name === "string") {
+    const trimmed = updateData.name.trim();
+    updateData.name = trimmed ? trimmed[0].toUpperCase() + trimmed.slice(1) : trimmed;
+  }
+
   const category = await Category.findOneAndUpdate(
     { _id: id, userId: auth.userId },
-    { $set: parsed.data },
+    { $set: updateData },
     { new: true }
   );
 

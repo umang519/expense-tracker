@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import PasswordInput from "./PasswordInput";
 
 const CURRENCIES = [
   { code: "INR", label: "₹ Indian Rupee" },
@@ -73,14 +74,26 @@ export default function SettingsForm({ user }: { user: User }) {
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [pwFieldErrors, setPwFieldErrors] = useState({ current: "", new: "", confirm: "" });
   const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "saved" | string>("idle");
+
+  function clearPwFieldError(field: keyof typeof pwFieldErrors) {
+    setPwFieldErrors((prev) => ({ ...prev, [field]: "" }));
+  }
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (newPw !== confirmPw) {
-      setPwStatus("Passwords do not match");
+    setPwFieldErrors({ current: "", new: "", confirm: "" });
+
+    if (newPw.length < 8) {
+      setPwFieldErrors((prev) => ({ ...prev, new: "Password must be at least 8 characters" }));
       return;
     }
+    if (newPw !== confirmPw) {
+      setPwFieldErrors((prev) => ({ ...prev, confirm: "Passwords do not match" }));
+      return;
+    }
+
     setPwStatus("saving");
     const res = await fetch("/api/auth/change-password", {
       method: "POST",
@@ -95,7 +108,12 @@ export default function SettingsForm({ user }: { user: User }) {
       setTimeout(() => setPwStatus("idle"), 2000);
     } else {
       const d = await res.json();
-      setPwStatus(d.error ?? "Failed to change password");
+      const msg: string = d.error ?? "Failed to change password";
+      if (msg.toLowerCase().includes("current") || msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("wrong")) {
+        setPwFieldErrors((prev) => ({ ...prev, current: msg }));
+      } else {
+        setPwStatus(msg);
+      }
     }
   }
 
@@ -179,43 +197,49 @@ export default function SettingsForm({ user }: { user: User }) {
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Current password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={currentPw}
-              onChange={(e) => setCurrentPw(e.target.value)}
+              onChange={(e) => { setCurrentPw(e.target.value); clearPwFieldError("current"); }}
               autoComplete="current-password"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="••••••••"
             />
+            {pwFieldErrors.current && (
+              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.current}</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               New password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={newPw}
-              onChange={(e) => setNewPw(e.target.value)}
+              onChange={(e) => { setNewPw(e.target.value); clearPwFieldError("new"); }}
               autoComplete="new-password"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="Min 8 characters"
             />
+            {pwFieldErrors.new && (
+              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.new}</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Confirm new password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={confirmPw}
-              onChange={(e) => setConfirmPw(e.target.value)}
+              onChange={(e) => { setConfirmPw(e.target.value); clearPwFieldError("confirm"); }}
               autoComplete="new-password"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="••••••••"
             />
+            {pwFieldErrors.confirm && (
+              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.confirm}</p>
+            )}
           </div>
           <StatusButton status={pwStatus} label="Change password" />
         </form>

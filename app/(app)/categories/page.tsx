@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface Category {
   _id: string;
@@ -18,7 +19,7 @@ const PRESET_COLORS = [
 ];
 
 async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch("/api/categories");
+  const res = await clientFetch("/api/categories");
   if (!res.ok) throw new Error("Failed to load categories");
   const data = await res.json();
   return data.categories;
@@ -26,13 +27,14 @@ async function fetchCategories(): Promise<Category[]> {
 
 export default function CategoriesPage() {
   const qc = useQueryClient();
-  const { data: categories = [], isLoading } = useQuery({
+  const { data: categories = [], isLoading, isError } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
   });
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
 
   const active = categories.filter((c) => !c.isArchived);
   const archived = categories.filter((c) => c.isArchived);
@@ -80,6 +82,7 @@ export default function CategoriesPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categories"] });
       setEditingId(null);
+      setArchiveConfirmId(null);
     },
   });
 
@@ -103,8 +106,22 @@ export default function CategoriesPage() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-lg mx-auto pt-8 text-center text-gray-400 text-sm">
-          Loading…
+        <div className="max-w-lg mx-auto space-y-2 pt-20">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-lg mx-auto pt-20">
+          <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
+            <p className="text-sm text-red-500">Could not load categories. Try refreshing.</p>
+          </div>
         </div>
       </main>
     );
@@ -171,26 +188,50 @@ export default function CategoriesPage() {
                   <span className="flex-1 text-sm font-medium text-gray-800">
                     {cat.name}
                   </span>
-                  <button
-                    onClick={() => {
-                      setEditingId(cat._id);
-                      setShowAddForm(false);
-                    }}
-                    className="text-gray-400 hover:text-gray-600 p-1 rounded"
-                    aria-label="Edit"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    onClick={() =>
-                      archiveMutation.mutate({ id: cat._id, archive: true })
-                    }
-                    disabled={archiveMutation.isPending}
-                    className="text-gray-400 hover:text-red-500 p-1 rounded disabled:opacity-50"
-                    aria-label="Archive"
-                  >
-                    ⊖
-                  </button>
+                  {archiveConfirmId === cat._id ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Archive?</span>
+                      <button
+                        onClick={() => {
+                          archiveMutation.mutate({ id: cat._id, archive: true });
+                          setArchiveConfirmId(null);
+                        }}
+                        className="text-xs text-red-500 font-medium px-2 py-1 rounded border border-red-200 hover:bg-red-50"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => setArchiveConfirmId(null)}
+                        className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setEditingId(cat._id);
+                          setShowAddForm(false);
+                          setArchiveConfirmId(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                        aria-label="Edit category"
+                        title="Edit category"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => setArchiveConfirmId(cat._id)}
+                        disabled={archiveMutation.isPending}
+                        className="text-gray-400 hover:text-red-500 p-1 rounded disabled:opacity-50"
+                        aria-label="Archive category"
+                        title="Archive category"
+                      >
+                        ⊖
+                      </button>
+                    </>
+                  )}
                 </li>
               )
             )}
@@ -255,8 +296,10 @@ function CategoryForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
-    onSave({ name: name.trim(), color });
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const normalized = trimmed[0].toUpperCase() + trimmed.slice(1);
+    onSave({ name: normalized, color });
   }
 
   return (

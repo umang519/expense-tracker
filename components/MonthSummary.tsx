@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatAmount } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface CategoryRow {
   categoryId: string;
@@ -18,7 +19,7 @@ interface Summary {
 }
 
 async function fetchSummary(month: string): Promise<Summary> {
-  const res = await fetch(`/api/summary/monthly?month=${month}`);
+  const res = await clientFetch(`/api/summary/monthly?month=${month}`);
   if (!res.ok) throw new Error("Failed to load summary");
   return res.json();
 }
@@ -29,7 +30,7 @@ interface Props {
 }
 
 export default function MonthSummary({ month, currency = "INR" }: Props) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["summary", "monthly", month],
     queryFn: () => fetchSummary(month),
   });
@@ -43,8 +44,20 @@ export default function MonthSummary({ month, currency = "INR" }: Props) {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="mb-4 bg-white rounded-2xl border border-red-100 p-6 text-center">
+        <p className="text-sm text-red-500">Could not load summary. Try refreshing.</p>
+      </div>
+    );
+  }
+
   if (!data || data.total === 0) {
-    return null;
+    return (
+      <div className="mb-4 bg-white rounded-2xl border border-dashed border-gray-200 p-7 text-center">
+        <p className="text-gray-400 text-sm">Nothing spent this month yet</p>
+      </div>
+    );
   }
 
   return (

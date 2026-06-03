@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatAmount } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -27,7 +28,7 @@ function formatTxDate(iso: string) {
 }
 
 async function fetchTransactions(): Promise<Transaction[]> {
-  const res = await fetch("/api/transactions");
+  const res = await clientFetch("/api/transactions");
   if (!res.ok) throw new Error("Failed to load transactions");
   return (await res.json()).transactions;
 }
@@ -38,7 +39,7 @@ export default function TransactionsPage() {
   const qc = useQueryClient();
   const [sheetMode, setSheetMode] = useState<null | "add" | Transaction>(null);
 
-  const { data: transactions = [], isLoading } = useQuery({
+  const { data: transactions = [], isLoading, isError } = useQuery({
     queryKey: ["transactions"],
     queryFn: fetchTransactions,
   });
@@ -136,15 +137,22 @@ export default function TransactionsPage() {
           </div>
         )}
 
+        {/* Error */}
+        {isError && (
+          <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
+            <p className="text-sm text-red-500">Could not load transactions. Try refreshing.</p>
+          </div>
+        )}
+
         {/* Empty */}
-        {!isLoading && transactions.length === 0 && (
+        {!isLoading && !isError && transactions.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
             No transactions yet. Tap + Add to record one.
           </div>
         )}
 
         {/* Grouped list */}
-        {!isLoading && years.map((year) => {
+        {!isLoading && !isError && years.map((year) => {
           const yearTxs = groups[year];
           const yearDr = yearTxs.filter((t) => t.type === "Dr").reduce((s, t) => s + t.amount, 0);
           const yearCr = yearTxs.filter((t) => t.type === "Cr").reduce((s, t) => s + t.amount, 0);
@@ -308,6 +316,7 @@ function TransactionSheet({
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1"
+            aria-label="Close"
           >
             ✕
           </button>

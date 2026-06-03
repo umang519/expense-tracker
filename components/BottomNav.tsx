@@ -47,7 +47,7 @@ function GearIcon({ active }: { active: boolean }) {
 const links = [
   { href: "/dashboard", label: "Home",         Icon: HomeIcon },
   { href: "/categories", label: "Categories",  Icon: TagIcon },
-  { href: "/transactions", label: "Transfers", Icon: ArrowsIcon },
+  { href: "/transactions", label: "Transactions", Icon: ArrowsIcon },
   { href: "/reports", label: "Reports",        Icon: ChartIcon },
   { href: "/settings", label: "Settings",      Icon: GearIcon },
 ];

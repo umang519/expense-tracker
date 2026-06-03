@@ -4,6 +4,9 @@ A mobile-first web app to replace a manual expense spreadsheet. Lets any user si
 record daily expenses across their own custom categories, log major one-off
 transactions, and view monthly/yearly summaries — all from a phone or laptop.
 
+> **Status:** ✅ MVP shipped and deployed (Phases 0–8 complete). Live on Vercel + MongoDB Atlas.
+> The sections below from "Build Phases" onward now track what's done and what's next.
+
 ---
 
 ## 1. Goals
@@ -28,11 +31,6 @@ transactions, and view monthly/yearly summaries — all from a phone or laptop.
 | Data fetching | **TanStack Query (React Query)** | Caching, optimistic updates for fast entry |
 | Charts | **Recharts** | Category breakdowns, monthly trends |
 | Deployment | **Vercel** (app + API) + **MongoDB Atlas** | Single deploy, free tiers |
-
-> **Why not a separate Express server?** Next.js route handlers already run on Node.js
-> with full access to MongoDB. A separate Express service would only add a second thing to
-> deploy, a second thing to keep in sync, and CORS configuration — with no benefit at this
-> scale. The API layer can be extracted later if ever needed.
 
 ---
 
@@ -94,10 +92,8 @@ Compound index: `{ userId: 1, date: -1 }`.
 2. **/ (Dashboard)** — current month at a glance: total spent, per-category breakdown (donut),
    recent entries, and a prominent **+ Add Expense** button. The default mobile landing screen.
 3. **Add Expense (modal/sheet)** — date (defaults to today), category dropdown, amount, optional note.
-   Optimized for speed; this is the most-used action.
-4. **/month/[yyyy-mm]** — all entries grouped by day, monthly total, per-category totals. Mirrors the old daily tracker.
-5. **/reports** — yearly view: month-by-month table (per-category totals + grand total),
-   category %, category averages, and a trend chart. Mirrors the yearly summary.
+4. **/month/[yyyy-mm]** — all entries grouped by day, monthly total, per-category totals.
+5. **/reports** — yearly view: month-by-month table, category %, averages, trend chart.
 6. **/categories** — manage custom categories (add, rename, recolor, archive).
 7. **/transactions** — major transactions list + add (date, amount, Dr/Cr, description).
 8. **/settings** — name, currency, change password, logout.
@@ -136,38 +132,74 @@ queries to that user. A user can never query another user's data.
 
 ---
 
-## 6. Build Phases (milestones)
+## 6. Build Phases — ✅ COMPLETE
 
-- **Phase 0 — Setup:** Next.js + TS + Tailwind scaffold, MongoDB Atlas connection, env vars, Mongoose connection helper.
-- **Phase 1 — Auth:** register/login/logout, password hashing, JWT cookie, route protection (middleware), `/api/auth/me`.
-- **Phase 2 — Categories:** model + CRUD + seed-on-signup + management UI.
-- **Phase 3 — Expenses (core):** model + CRUD + fast Add-Expense UI with optimistic updates.
-- **Phase 4 — Dashboard + monthly view:** current-month overview, per-day grouping, totals.
-- **Phase 5 — Reports:** yearly aggregation, tables, category %, averages, charts.
-- **Phase 6 — Major transactions:** model + CRUD + UI.
-- **Phase 7 — Polish:** mobile refinements, empty/error/loading states, settings, optional PWA (installable on phone).
-- **Phase 8 — Deploy:** Vercel + Atlas, production env vars, smoke test.
-
-Ship Phases 0–4 first — that alone replaces the spreadsheet for daily use.
+- ✅ **Phase 0 — Setup:** Next.js + TS + Tailwind, MongoDB connection, env vars, Mongoose helper.
+- ✅ **Phase 1 — Auth:** register/login/logout, password hashing, JWT cookie, route protection.
+- ✅ **Phase 2 — Categories:** model + CRUD + seed-on-signup + management UI.
+- ✅ **Phase 3 — Expenses:** model + CRUD + fast Add-Expense UI.
+- ✅ **Phase 4 — Dashboard + monthly view.**
+- ✅ **Phase 5 — Reports:** yearly aggregation, tables, charts.
+- ✅ **Phase 6 — Major transactions.**
+- ✅ **Phase 7 — Polish:** mobile refinements, states, settings, PWA meta.
+- ✅ **Phase 8 — Deploy:** live on Vercel + Atlas.
 
 ---
 
-## 7. Mobile & UX Notes
+## 7. Post-Launch Roadmap (next plan)
 
-- Mobile-first Tailwind: design for ~380px width, scale up.
-- Add-Expense reachable in one tap from anywhere (floating button).
-- Amount field uses numeric keypad (`inputMode="decimal"`).
-- Optional PWA manifest so it installs to the home screen and feels app-like.
+The MVP works. These build on it, roughly in priority order. Each is independent —
+tackle them one at a time with Claude Code, same as before.
+
+### Phase 9 — Import historical data (HIGHEST PRIORITY)
+~5 months of real data already exists in the original Excel sheet, but the app starts empty,
+so reports and averages have nothing to show. Build an importer so that data lives in the app.
+- A `/settings/import` screen: upload a CSV (or the .xlsx).
+- Server parses rows → maps columns (date, category, amount, note) → creates Expense docs.
+- Map the sheet's four columns (Food/Travel/Investments/Extras) onto the seeded categories.
+- Import the "Major Transactions" rows into the Transaction collection.
+- Show a preview + confirm step before writing; report how many rows imported/skipped.
+- *Tip: export each sheet section to CSV first; CSV parsing is far simpler than .xlsx parsing.*
+
+### Phase 10 — Budgets & alerts
+- Optional monthly budget per category (and an overall monthly budget).
+- Dashboard shows progress bars (spent vs budget) and a visual warning when near/over.
+- Model: a `Budget` collection — `userId`, `categoryId?`, `month`/recurring, `amount`.
+
+### Phase 11 — Search, filter & export
+- Filter expenses by category, date range, amount range, and note text.
+- Export filtered results (and full history) to CSV — doubles as a personal backup.
+- This closes the loop: data can come in (Phase 9) and go back out.
+
+### Phase 12 — Recurring expenses & richer analytics
+- Recurring entries (rent, subscriptions, monthly recharge) auto-created on a schedule.
+- Month-over-month comparison, top-categories, and a calendar "spending heatmap".
+
+### Phase 13 — Account security & management
+- Password reset via email + email verification on signup.
+- Login rate-limiting / lockout to resist brute force.
+- "Export all my data" and "Delete my account" (privacy basics for a public userbase).
+
+### Phase 14 — Offline-first / PWA hardening
+- Confirm installability; add an app icon set and a complete manifest.
+- Service worker for offline viewing of recent data.
+- Queue new expenses entered while offline and sync when back online (true "add from anywhere").
+
+### Phase 15 — Quality & operations
+- Tests: unit tests for aggregation/auth logic, a couple of end-to-end flows (login → add → view).
+- Error monitoring (e.g. Sentry) so production issues surface.
+- Basic API rate limiting.
 
 ---
 
-## 8. Security Checklist
+## 8. Security Checklist (keep enforcing)
 
 - Passwords hashed with bcrypt (never stored or logged in plaintext).
 - JWT in **httpOnly, Secure, SameSite** cookie (not localStorage).
 - Every query scoped by `userId` from the verified token.
 - Zod-validate every request body server-side.
 - Secrets (`MONGODB_URI`, `JWT_SECRET`) only in env vars, never committed.
+- Rotate any credential that has been shared or exposed.
 
 ---
 

@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { formatAmount } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ interface YearlySummary {
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 
 async function fetchYearly(year: number): Promise<YearlySummary> {
-  const res = await fetch(`/api/summary/yearly?year=${year}`);
+  const res = await clientFetch(`/api/summary/yearly?year=${year}`);
   if (!res.ok) throw new Error("Failed to load report");
   return res.json();
 }
@@ -73,7 +74,7 @@ export default function YearlyReport({
   const [year, setYear] = useState(initialYear);
   const currentYear = new Date().getFullYear();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["summary", "yearly", year],
     queryFn: () => fetchYearly(year),
   });
@@ -123,13 +124,22 @@ export default function YearlyReport({
         </div>
       )}
 
-      {!isLoading && data && data.grandTotal === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
-          No expenses recorded for {year}.
+      {isError && (
+        <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
+          <p className="text-sm text-red-500">Could not load report. Try refreshing.</p>
         </div>
       )}
 
-      {!isLoading && data && data.grandTotal > 0 && (
+      {!isLoading && !isError && data && data.grandTotal === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <p className="text-gray-600 font-medium mb-1.5">No expenses in {year}</p>
+          <p className="text-gray-400 text-sm">
+            Add expenses from the dashboard and your yearly report will appear here.
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !isError && data && data.grandTotal > 0 && (
         <>
           {/* Grand total */}
           <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4">
@@ -149,7 +159,7 @@ export default function YearlyReport({
                   ),
                   currency
                 )}{" "}
-                / month
+                / active month
               </p>
             )}
           </div>
@@ -232,7 +242,10 @@ export default function YearlyReport({
                     <span className="text-xs text-gray-400 w-8 text-right">
                       {cat.percentage}%
                     </span>
-                    <span className="text-xs text-gray-400 w-20 text-right">
+                    <span
+                      className="text-xs text-gray-400 w-20 text-right"
+                      title="Average per active month (months with at least one expense)"
+                    >
                       avg {formatAmount(cat.monthlyAvg, currency)}/mo
                     </span>
                     <span className="text-sm font-semibold text-gray-800 w-20 text-right">

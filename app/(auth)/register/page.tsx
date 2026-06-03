@@ -3,20 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setEmailError("");
+    setPasswordError("");
+    setFormError("");
 
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return;
+    }
+
+    setLoading(true);
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,13 +37,23 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Something went wrong");
+      const msg = data.error ?? "Something went wrong";
+      if (msg.toLowerCase().includes("email") || msg.toLowerCase().includes("already")) {
+        setEmailError(msg);
+      } else if (msg.toLowerCase().includes("password")) {
+        setPasswordError(msg);
+      } else {
+        setFormError(msg);
+      }
       return;
     }
 
     router.push("/dashboard");
     router.refresh();
   }
+
+  const inputClass =
+    "w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm";
 
   return (
     <div className="w-full max-w-sm">
@@ -51,7 +71,7 @@ export default function RegisterPage() {
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+              className={inputClass}
               placeholder="Your name"
             />
           </div>
@@ -65,30 +85,35 @@ export default function RegisterPage() {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+              onChange={(e) => { setEmail(e.target.value); setEmailError(""); }}
+              className={`${inputClass} ${emailError ? "border-red-300 focus:ring-red-400" : ""}`}
               placeholder="you@example.com"
             />
+            {emailError && (
+              <p className="text-xs text-red-600 mt-1">{emailError}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               autoComplete="new-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+              onChange={(e) => { setPassword(e.target.value); setPasswordError(""); }}
+              className={`${inputClass} ${passwordError ? "border-red-300 focus:ring-red-400" : ""}`}
               placeholder="Min 8 characters"
             />
+            {passwordError && (
+              <p className="text-xs text-red-600 mt-1">{passwordError}</p>
+            )}
           </div>
 
-          {error && (
+          {formError && (
             <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
-              {error}
+              {formError}
             </p>
           )}
 

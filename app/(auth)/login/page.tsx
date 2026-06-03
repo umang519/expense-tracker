@@ -3,17 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setPwError("");
+    setFormError("");
     setLoading(true);
 
     const res = await fetch("/api/auth/login", {
@@ -26,13 +29,22 @@ export default function LoginPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Something went wrong");
+      // Show credential errors under the password field
+      const msg = data.error ?? "Something went wrong";
+      if (res.status === 401 || msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("password") || msg.toLowerCase().includes("credentials")) {
+        setPwError(msg);
+      } else {
+        setFormError(msg);
+      }
       return;
     }
 
     router.push("/dashboard");
     router.refresh();
   }
+
+  const inputClass =
+    "w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm";
 
   return (
     <div className="w-full max-w-sm">
@@ -51,7 +63,7 @@ export default function LoginPage() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+              className={inputClass}
               placeholder="you@example.com"
             />
           </div>
@@ -60,20 +72,22 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               required
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+              onChange={(e) => { setPassword(e.target.value); setPwError(""); }}
+              className={inputClass}
               placeholder="••••••••"
             />
+            {pwError && (
+              <p className="text-xs text-red-600 mt-1">{pwError}</p>
+            )}
           </div>
 
-          {error && (
+          {formError && (
             <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
-              {error}
+              {formError}
             </p>
           )}
 

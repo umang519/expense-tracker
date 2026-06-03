@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Category, PopulatedExpense } from "@/lib/types";
+import { clientFetch } from "@/lib/client-fetch";
 
 function todayString() {
   const d = new Date();
@@ -13,7 +14,7 @@ function todayString() {
 }
 
 async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch("/api/categories");
+  const res = await clientFetch("/api/categories");
   if (!res.ok) throw new Error("Failed to load categories");
   return (await res.json()).categories;
 }
@@ -21,10 +22,12 @@ async function fetchCategories(): Promise<Category[]> {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  initialExpense?: PopulatedExpense; // when set = edit mode
 }
 
-export default function AddExpenseSheet({ isOpen, onClose }: Props) {
+export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Props) {
   const qc = useQueryClient();
+  const isEdit = !!initialExpense;
 
   const { data: allCategories = [] } = useQuery({
     queryKey: ["categories"],
@@ -32,7 +35,10 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
     enabled: isOpen,
   });
 
-  const categories = allCategories.filter((c) => !c.isArchived);
+  // In edit mode, include the expense's category even if archived
+  const categories = allCategories.filter(
+    (c) => !c.isArchived || (isEdit && c._id === initialExpense?.categoryId._id)
+  );
 
   const [date, setDate] = useState(todayString);
   const [categoryId, setCategoryId] = useState("");
@@ -40,24 +46,33 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
 
-  // Pre-select first category once loaded
+  // Pre-select first category once loaded (add mode only)
   useEffect(() => {
-    if (categories.length > 0 && !categoryId) {
+    if (categories.length > 0 && !categoryId && !isEdit) {
       setCategoryId(categories[0]._id);
     }
-  }, [categories, categoryId]);
+  }, [categories, categoryId, isEdit]);
 
-  // Reset form when sheet opens
+  // Reset / pre-fill when sheet opens or target expense changes
   useEffect(() => {
     if (isOpen) {
-      setDate(todayString());
-      setAmount("");
-      setNote("");
       setError("");
-      setCategoryId(categories[0]?._id ?? "");
+      if (initialExpense) {
+        setDate(initialExpense.date.substring(0, 10));
+        setCategoryId(initialExpense.categoryId._id);
+        setAmount(String(initialExpense.amount));
+        setNote(initialExpense.note ?? "");
+      } else {
+        setDate(todayString());
+        setAmount("");
+        setNote("");
+        setCategoryId(categories[0]?._id ?? "");
+      }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialExpense]);
+
+  // ── Add mutation ────────────────────────────────────────────────────────────
 
   const addMutation = useMutation({
     mutationFn: async (data: {
@@ -112,6 +127,34 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
     },
   });
 
+  // ── Edit mutation ────────────────────────────────────────────────────────────
+
+  const editMutation = useMutation({
+    mutationFn: async (data: {
+      date: string;
+      categoryId: string;
+      amount: number;
+      note?: string;
+    }) => {
+      const res = await fetch(`/api/expenses/${initialExpense!._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed to update expense");
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      onClose();
+    },
+    onError: (err) => setError(err.message),
+  });
+
+  const isPending = addMutation.isPending || editMutation.isPending;
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -124,12 +167,17 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
       setError("Select a category");
       return;
     }
-    addMutation.mutate({
+    const payload = {
       date,
       categoryId,
       amount: parsedAmount,
       note: note.trim() || undefined,
-    });
+    };
+    if (isEdit) {
+      editMutation.mutate(payload);
+    } else {
+      addMutation.mutate(payload);
+    }
   }
 
   if (!isOpen) return null;
@@ -144,10 +192,13 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-gray-900">Add Expense</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            {isEdit ? "Edit Expense" : "Add Expense"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1"
+            aria-label="Close"
           >
             ✕
           </button>
@@ -242,10 +293,10 @@ export default function AddExpenseSheet({ isOpen, onClose }: Props) {
 
           <button
             type="submit"
-            disabled={addMutation.isPending}
+            disabled={isPending}
             className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-colors text-base"
           >
-            {addMutation.isPending ? "Saving…" : "Add Expense"}
+            {isPending ? "Saving…" : isEdit ? "Save Changes" : "Add Expense"}
           </button>
         </form>
       </div>

@@ -40,9 +40,12 @@ export async function POST(req: NextRequest) {
   const sortOrder =
     parsed.data.sortOrder ?? (lastCategory ? lastCategory.sortOrder + 1 : 0);
 
+  const rawName = parsed.data.name.trim();
+  const name = rawName ? rawName[0].toUpperCase() + rawName.slice(1) : rawName;
+
   const category = await Category.create({
     userId: auth.userId,
-    name: parsed.data.name,
+    name,
     color: parsed.data.color,
     sortOrder,
     isArchived: false,
