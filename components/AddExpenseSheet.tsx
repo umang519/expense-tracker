@@ -49,6 +49,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
   // Pre-select first category once loaded (add mode only)
   useEffect(() => {
     if (categories.length > 0 && !categoryId && !isEdit) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCategoryId(categories[0]._id);
     }
   }, [categories, categoryId, isEdit]);
@@ -56,6 +57,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
   // Reset / pre-fill when sheet opens or target expense changes
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError("");
       if (initialExpense) {
         setDate(initialExpense.date.substring(0, 10));
@@ -99,7 +101,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
 
       const cat = categories.find((c) => c._id === newData.categoryId);
       const optimistic: PopulatedExpense = {
-        _id: `optimistic-${Date.now()}`,
+        _id: `optimistic-${Date.now()}`, // eslint-disable-line react-hooks/purity
         date: newData.date + "T00:00:00.000Z",
         amount: newData.amount,
         note: newData.note,
