@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # These are needed at build time because lib/db.ts and lib/auth.ts
+          # reference them at module scope. Add both in:
+          # GitHub → Settings → Secrets and variables → Actions
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
