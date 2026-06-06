@@ -13,6 +13,7 @@ interface Transaction {
   amount: number;
   type: "Dr" | "Cr";
   description: string;
+  isInvestment: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,6 +39,8 @@ async function fetchTransactions(): Promise<Transaction[]> {
 export default function TransactionsPage() {
   const qc = useQueryClient();
   const [sheetMode, setSheetMode] = useState<null | "add" | Transaction>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const { data: transactions = [], isLoading, isError } = useQuery({
     queryKey: ["transactions"],
@@ -66,14 +69,18 @@ export default function TransactionsPage() {
   });
 
   // ── Summary ──────────────────────────────────────────────────────────────
+  // Split debits into "spent" (gone for good) vs "invested" (parked, not lost)
+  // so the totals don't paint investments the same red as real expenses.
 
-  const totalDr = transactions
-    .filter((t) => t.type === "Dr")
+  const totalSpent = transactions
+    .filter((t) => t.type === "Dr" && !t.isInvestment)
     .reduce((s, t) => s + t.amount, 0);
-  const totalCr = transactions
+  const totalInvested = transactions
+    .filter((t) => t.type === "Dr" && t.isInvestment)
+    .reduce((s, t) => s + t.amount, 0);
+  const totalReceived = transactions
     .filter((t) => t.type === "Cr")
     .reduce((s, t) => s + t.amount, 0);
-  const net = totalCr - totalDr;
 
   // ── Group by year ────────────────────────────────────────────────────────
 
@@ -86,6 +93,17 @@ export default function TransactionsPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 p-4">
+      {/* Backdrop to close open menu on outside tap */}
+      {activeMenuId && (
+        <div
+          className="fixed inset-0 z-[5]"
+          onClick={() => {
+            setActiveMenuId(null);
+            setConfirmDeleteId(null);
+          }}
+        />
+      )}
+
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between py-4 mb-3">
@@ -105,24 +123,21 @@ export default function TransactionsPage() {
         {transactions.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 grid grid-cols-3 gap-3">
             <div className="text-center">
-              <p className="text-xs text-gray-400 mb-0.5">Debit</p>
+              <p className="text-xs text-gray-400 mb-0.5">Spent</p>
               <p className="text-sm font-bold text-red-500">
-                {formatAmount(totalDr)}
+                {formatAmount(totalSpent)}
               </p>
             </div>
             <div className="text-center border-x border-gray-100">
-              <p className="text-xs text-gray-400 mb-0.5">Credit</p>
-              <p className="text-sm font-bold text-emerald-500">
-                {formatAmount(totalCr)}
+              <p className="text-xs text-gray-400 mb-0.5">Invested</p>
+              <p className="text-sm font-bold text-violet-500">
+                {formatAmount(totalInvested)}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-400 mb-0.5">Net</p>
-              <p
-                className={`text-sm font-bold ${net >= 0 ? "text-emerald-500" : "text-red-500"}`}
-              >
-                {net >= 0 ? "+" : ""}
-                {formatAmount(Math.abs(net))}
+              <p className="text-xs text-gray-400 mb-0.5">Received</p>
+              <p className="text-sm font-bold text-emerald-500">
+                {formatAmount(totalReceived)}
               </p>
             </div>
           </div>
@@ -154,8 +169,9 @@ export default function TransactionsPage() {
         {/* Grouped list */}
         {!isLoading && !isError && years.map((year) => {
           const yearTxs = groups[year];
-          const yearDr = yearTxs.filter((t) => t.type === "Dr").reduce((s, t) => s + t.amount, 0);
-          const yearCr = yearTxs.filter((t) => t.type === "Cr").reduce((s, t) => s + t.amount, 0);
+          const yearSpent = yearTxs.filter((t) => t.type === "Dr" && !t.isInvestment).reduce((s, t) => s + t.amount, 0);
+          const yearInvested = yearTxs.filter((t) => t.type === "Dr" && t.isInvestment).reduce((s, t) => s + t.amount, 0);
+          const yearReceived = yearTxs.filter((t) => t.type === "Cr").reduce((s, t) => s + t.amount, 0);
 
           return (
             <div key={year} className="mb-6">
@@ -164,65 +180,128 @@ export default function TransactionsPage() {
                   {year}
                 </span>
                 <span className="text-xs text-gray-400">
-                  Dr {formatAmount(yearDr)} · Cr {formatAmount(yearCr)}
+                  Spent {formatAmount(yearSpent)} · Invested {formatAmount(yearInvested)} · Received {formatAmount(yearReceived)}
                 </span>
               </div>
 
               <ul className="space-y-2">
-                {yearTxs.map((tx) => (
+                {yearTxs.map((tx) => {
+                  const colorClasses = tx.isInvestment
+                    ? { badge: "bg-violet-50 text-violet-500", amount: "text-violet-500" }
+                    : tx.type === "Dr"
+                    ? { badge: "bg-red-50 text-red-500", amount: "text-red-500" }
+                    : { badge: "bg-emerald-50 text-emerald-600", amount: "text-emerald-600" };
+
+                  return (
                   <li
                     key={tx._id}
-                    className="bg-white rounded-xl border border-gray-100 flex items-center gap-3 px-4 py-3 group"
+                    className="bg-white rounded-xl border border-gray-100 flex items-center gap-3 px-4 py-3"
                   >
                     {/* Type badge */}
-                    <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 ${
-                        tx.type === "Dr"
-                          ? "bg-red-50 text-red-500"
-                          : "bg-emerald-50 text-emerald-600"
-                      }`}
-                    >
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 ${colorClasses.badge}`}>
                       {tx.type}
                     </span>
 
                     {/* Description + date */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
-                        {tx.description}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-gray-800 truncate">
+                          {tx.description}
+                        </p>
+                        {tx.isInvestment && (
+                          <span className="text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded flex-shrink-0">
+                            Invested
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400">{formatTxDate(tx.date)}</p>
                     </div>
 
                     {/* Amount */}
-                    <span
-                      className={`text-sm font-bold flex-shrink-0 ${
-                        tx.type === "Dr" ? "text-red-500" : "text-emerald-600"
-                      }`}
-                    >
+                    <span className={`text-sm font-bold flex-shrink-0 ${colorClasses.amount}`}>
                       {tx.type === "Dr" ? "−" : "+"}
                       {formatAmount(tx.amount)}
                     </span>
 
-                    {/* Actions */}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* More options — always visible (not hover-dependent) */}
+                    <div className="relative flex-shrink-0">
                       <button
-                        onClick={() => setSheetMode(tx)}
-                        className="text-gray-400 hover:text-violet-500 p-1 rounded"
-                        aria-label="Edit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (activeMenuId === tx._id) {
+                            setActiveMenuId(null);
+                            setConfirmDeleteId(null);
+                          } else {
+                            setActiveMenuId(tx._id);
+                            setConfirmDeleteId(null);
+                          }
+                        }}
+                        className="text-gray-300 hover:text-gray-500 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 text-lg leading-none"
+                        aria-label="More options"
+                        title="More options"
                       >
-                        ✎
+                        ⋮
                       </button>
-                      <button
-                        onClick={() => deleteMutation.mutate(tx._id)}
-                        disabled={deleteMutation.isPending}
-                        className="text-gray-400 hover:text-red-500 p-1 rounded disabled:opacity-30"
-                        aria-label="Delete"
-                      >
-                        ✕
-                      </button>
+
+                      {activeMenuId === tx._id && (
+                        <div
+                          className="absolute right-0 top-8 bg-white rounded-xl border border-gray-100 shadow-lg z-10 min-w-[160px] py-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {confirmDeleteId === tx._id ? (
+                            <div className="px-3 py-2.5">
+                              <p className="text-xs font-medium text-gray-700 mb-2.5">
+                                Delete this transaction?
+                              </p>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    deleteMutation.mutate(tx._id);
+                                    setConfirmDeleteId(null);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="flex-1 py-1.5 bg-red-500 text-white text-xs rounded-lg font-medium hover:bg-red-600"
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setConfirmDeleteId(null);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="flex-1 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSheetMode(tx);
+                                  setActiveMenuId(null);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
+                              >
+                                <span className="text-base leading-none">✎</span>
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(tx._id)}
+                                className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2.5"
+                              >
+                                <span className="text-base leading-none">✕</span>
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           );
@@ -261,6 +340,7 @@ function TransactionSheet({
   const [type, setType] = useState<"Dr" | "Cr">(initial?.type ?? "Dr");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [isInvestment, setIsInvestment] = useState(initial?.isInvestment ?? false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -279,7 +359,7 @@ function TransactionSheet({
     }
 
     setSaving(true);
-    const payload = { date, type, amount: parsedAmount, description: description.trim() };
+    const payload = { date, type, amount: parsedAmount, description: description.trim(), isInvestment };
     const url = initial ? `/api/transactions/${initial._id}` : "/api/transactions";
     const method = initial ? "PATCH" : "POST";
 
@@ -342,7 +422,10 @@ function TransactionSheet({
               </button>
               <button
                 type="button"
-                onClick={() => setType("Cr")}
+                onClick={() => {
+                  setType("Cr");
+                  setIsInvestment(false);
+                }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   type === "Cr"
                     ? "border-emerald-400 bg-emerald-50 text-emerald-600"
@@ -353,6 +436,21 @@ function TransactionSheet({
               </button>
             </div>
           </div>
+
+          {/* Investment toggle — only meaningful for outflows */}
+          {type === "Dr" && (
+            <label className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-gray-200 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isInvestment}
+                onChange={(e) => setIsInvestment(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+              />
+              <span className="text-sm text-gray-700">
+                This is an investment (FD, mutual fund, liquid fund, etc.) — money parked, not spent
+              </span>
+            </label>
+          )}
 
           {/* Amount */}
           <div>

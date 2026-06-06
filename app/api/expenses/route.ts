@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
   if (month && /^\d{4}-\d{2}$/.test(month)) {
     const [year, mon] = month.split("-").map(Number);
     filter.date = {
-      $gte: new Date(year, mon - 1, 1),
-      $lt: new Date(year, mon, 1),
+      $gte: new Date(Date.UTC(year, mon - 1, 1)),
+      $lt: new Date(Date.UTC(year, mon, 1)),
     };
   }
 
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   const [y, m, d] = date.split("-").map(Number);
   const expense = await Expense.create({
     userId: auth.userId,
-    date: new Date(y, m - 1, d),
+    date: new Date(Date.UTC(y, m - 1, d)),
     categoryId,
     amount,
     note,

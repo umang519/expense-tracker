@@ -59,6 +59,7 @@ export const TransactionCreateSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
   type: z.enum(["Dr", "Cr"]),
   description: z.string().trim().min(1, "Description is required").max(200),
+  isInvestment: z.boolean().optional(),
 });
 
 export const TransactionUpdateSchema = TransactionCreateSchema.partial();

@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   if (parsed.data.date) {
     const [y, m, d] = parsed.data.date.split("-").map(Number);
-    update.date = new Date(y, m - 1, d);
+    update.date = new Date(Date.UTC(y, m - 1, d));
   }
   if (parsed.data.categoryId !== undefined) {
     if (!Types.ObjectId.isValid(parsed.data.categoryId)) {

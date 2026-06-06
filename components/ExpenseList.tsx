@@ -51,7 +51,10 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     onError: () => {
       qc.invalidateQueries({ queryKey: ["expenses", month] });
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ["expenses", month] }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["expenses", month] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
+    },
   });
 
   function handleDeleteConfirmed(expense: PopulatedExpense) {
@@ -82,6 +85,7 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoTimerRef.current = null;
     qc.invalidateQueries({ queryKey: ["expenses", month] });
+    qc.invalidateQueries({ queryKey: ["summary"] });
     setUndoExpense(null);
   }
 

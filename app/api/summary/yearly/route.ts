@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
   }
 
   const year = Number(yearParam);
-  const start = new Date(year, 0, 1);
-  const end = new Date(year + 1, 0, 1);
+  const start = new Date(Date.UTC(year, 0, 1));
+  const end = new Date(Date.UTC(year + 1, 0, 1));
 
   await connectDB();
 

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   if (year && /^\d{4}$/.test(year)) {
     const y = Number(year);
-    filter.date = { $gte: new Date(y, 0, 1), $lt: new Date(y + 1, 0, 1) };
+    filter.date = { $gte: new Date(Date.UTC(y, 0, 1)), $lt: new Date(Date.UTC(y + 1, 0, 1)) };
   }
 
   const transactions = await Transaction.find(filter).sort({ date: -1, _id: -1 });
@@ -38,17 +38,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { date, amount, type, description } = parsed.data;
+  const { date, amount, type, description, isInvestment } = parsed.data;
   const [y, m, d] = date.split("-").map(Number);
 
   await connectDB();
 
   const transaction = await Transaction.create({
     userId: auth.userId,
-    date: new Date(y, m - 1, d),
+    date: new Date(Date.UTC(y, m - 1, d)),
     amount,
     type,
     description,
+    isInvestment: isInvestment ?? false,
   });
 
   return NextResponse.json({ transaction }, { status: 201 });

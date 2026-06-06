@@ -126,6 +126,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
     onSettled: (_data, _err, vars) => {
       const month = vars.date.substring(0, 7);
       qc.invalidateQueries({ queryKey: ["expenses", month] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
     },
   });
 
@@ -150,6 +151,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
       onClose();
     },
     onError: (err) => setError(err.message),
@@ -173,7 +175,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
       date,
       categoryId,
       amount: parsedAmount,
-      note: note.trim() || undefined,
+      note: note.trim(),
     };
     if (isEdit) {
       editMutation.mutate(payload);

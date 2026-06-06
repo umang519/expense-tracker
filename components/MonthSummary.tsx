@@ -30,12 +30,13 @@ interface Props {
 }
 
 export default function MonthSummary({ month, currency = "INR" }: Props) {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["summary", "monthly", month],
     queryFn: () => fetchSummary(month),
+    staleTime: 30_000,
   });
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="space-y-3 mb-4">
         <div className="h-32 bg-gray-100 rounded-2xl animate-pulse" />

@@ -29,11 +29,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const update: Record<string, any> = {};
   if (parsed.data.date) {
     const [y, m, d] = parsed.data.date.split("-").map(Number);
-    update.date = new Date(y, m - 1, d);
+    update.date = new Date(Date.UTC(y, m - 1, d));
   }
   if (parsed.data.amount !== undefined) update.amount = parsed.data.amount;
   if (parsed.data.type !== undefined) update.type = parsed.data.type;
   if (parsed.data.description !== undefined) update.description = parsed.data.description;
+  if (parsed.data.isInvestment !== undefined) update.isInvestment = parsed.data.isInvestment;
 
   await connectDB();
 

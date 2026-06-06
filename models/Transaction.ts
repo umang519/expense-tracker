@@ -6,6 +6,7 @@ export interface ITransaction extends Document {
   amount: number;
   type: "Dr" | "Cr";
   description: string;
+  isInvestment: boolean;
 }
 
 const TransactionSchema = new Schema<ITransaction>({
@@ -32,6 +33,10 @@ const TransactionSchema = new Schema<ITransaction>({
     type: String,
     required: true,
     trim: true,
+  },
+  isInvestment: {
+    type: Boolean,
+    default: false,
   },
 });
 
