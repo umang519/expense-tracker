@@ -156,7 +156,7 @@ tackle them one at a time with Claude Code, same as before.
 created, preview + confirm step, import summary (rows imported/skipped). Data now lives in
 the app and powers all reports.
 
-### Phase 10 — PWA polish + Report enhancements ← NEXT
+### Phase 10 — PWA polish + Report enhancements ✅ COMPLETE
 Two quick but high-value wins now that historical data exists:
 
 **a) PWA icon & app identity**
@@ -177,13 +177,13 @@ Two quick but high-value wins now that historical data exists:
 - Biggest single expense.
 - Fastest-growing category (comparing last 2–3 months).
 
-### Phase 11 — Budgets & alerts
+### Phase 11 — Budgets & alerts ✅ COMPLETE
 - Optional monthly budget per category (and an overall monthly budget).
 - Dashboard shows progress bars (spent vs budget) and a visual warning when near/over limit.
 - Model: a `Budget` collection — `userId`, `categoryId?`, `month`/recurring, `amount`.
 - Budget vs. actual comparison visible on the monthly view and reports.
 
-### Phase 12 — Search, filter & export
+### Phase 12 — Search, filter & export ✅ COMPLETE
 - Filter expenses by category, date range, amount range, and note text.
 - Export filtered results (and full history) to CSV — personal backup + data portability.
 - Monthly statement download (CSV). PIN/password protection optional in a later iteration.

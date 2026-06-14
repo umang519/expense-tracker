@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { PopulatedExpense } from "@/lib/types";
+import type { PopulatedExpense, Category } from "@/lib/types";
 import { formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
 import AddExpenseSheet from "./AddExpenseSheet";
@@ -18,6 +18,12 @@ async function fetchExpenses(month: string): Promise<PopulatedExpense[]> {
   return (await res.json()).expenses;
 }
 
+async function fetchCategories(): Promise<Category[]> {
+  const res = await clientFetch("/api/categories");
+  if (!res.ok) throw new Error("Failed to load categories");
+  return (await res.json()).categories;
+}
+
 interface Props {
   month: string;
   currency?: string;
@@ -30,13 +36,22 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     queryFn: () => fetchExpenses(month),
   });
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+    staleTime: 60_000,
+  });
+
+  // Filters
+  const [filterCategoryId, setFilterCategoryId] = useState("");
+  const [filterNote, setFilterNote] = useState("");
+
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editExpense, setEditExpense] = useState<PopulatedExpense | null>(null);
   const [undoExpense, setUndoExpense] = useState<PopulatedExpense | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Clear timer on unmount to avoid memory leaks
   useEffect(() => {
     return () => {
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -58,13 +73,11 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
   });
 
   function handleDeleteConfirmed(expense: PopulatedExpense) {
-    // Cancel any existing pending delete
     if (undoTimerRef.current) {
       clearTimeout(undoTimerRef.current);
       if (undoExpense) deleteMutation.mutate(undoExpense._id);
     }
 
-    // Optimistically remove from UI
     qc.setQueryData<PopulatedExpense[]>(["expenses", month], (old) =>
       (old ?? []).filter((e) => e._id !== expense._id)
     );
@@ -73,7 +86,6 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     setActiveMenuId(null);
     setConfirmDeleteId(null);
 
-    // Commit the delete after 5 seconds unless undo is clicked
     undoTimerRef.current = setTimeout(() => {
       deleteMutation.mutate(expense._id);
       setUndoExpense(null);
@@ -87,6 +99,29 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     qc.invalidateQueries({ queryKey: ["expenses", month] });
     qc.invalidateQueries({ queryKey: ["summary"] });
     setUndoExpense(null);
+  }
+
+  // Client-side filtering
+  const filtered = useMemo(() => {
+    let result = expenses;
+    if (filterCategoryId) {
+      result = result.filter((e) => e.categoryId._id === filterCategoryId);
+    }
+    if (filterNote.trim()) {
+      const q = filterNote.trim().toLowerCase();
+      result = result.filter((e) => e.note?.toLowerCase().includes(q));
+    }
+    return result;
+  }, [expenses, filterCategoryId, filterNote]);
+
+  const hasFilters = filterCategoryId !== "" || filterNote.trim() !== "";
+
+  // Build export URL from current filters
+  function exportUrl() {
+    const params = new URLSearchParams({ month });
+    if (filterCategoryId) params.set("categoryId", filterCategoryId);
+    if (filterNote.trim()) params.set("note", filterNote.trim());
+    return `/api/expenses/export?${params.toString()}`;
   }
 
   if (isLoading) {
@@ -116,7 +151,7 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     );
   }
 
-  const groups = expenses.reduce<Record<string, PopulatedExpense[]>>((acc, e) => {
+  const groups = filtered.reduce<Record<string, PopulatedExpense[]>>((acc, e) => {
     const key = e.date.substring(0, 10);
     (acc[key] ??= []).push(e);
     return acc;
@@ -126,7 +161,6 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
 
   return (
     <>
-      {/* Backdrop to close open menu on outside tap */}
       {activeMenuId && (
         <div
           className="fixed inset-0 z-[5]"
@@ -135,6 +169,56 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
             setConfirmDeleteId(null);
           }}
         />
+      )}
+
+      {/* Filter bar */}
+      <div className="flex items-center gap-2 mt-2 mb-1">
+        <select
+          value={filterCategoryId}
+          onChange={(e) => setFilterCategoryId(e.target.value)}
+          className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-600 focus:outline-none focus:ring-1 focus:ring-violet-400"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="search"
+          placeholder="Search notes…"
+          value={filterNote}
+          onChange={(e) => setFilterNote(e.target.value)}
+          className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white placeholder-gray-300 text-gray-600 focus:outline-none focus:ring-1 focus:ring-violet-400"
+        />
+
+        <a
+          href={exportUrl()}
+          download
+          title="Download CSV"
+          className="flex-shrink-0 flex items-center justify-center w-8 h-[30px] border border-gray-200 rounded-lg bg-white text-gray-400 hover:text-violet-600 hover:border-violet-300 transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </a>
+      </div>
+
+      {/* No-results state when filters are active */}
+      {filtered.length === 0 && hasFilters && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mt-2">
+          <p className="text-gray-400 text-sm">No expenses match your filters.</p>
+          <button
+            onClick={() => { setFilterCategoryId(""); setFilterNote(""); }}
+            className="mt-2 text-xs text-violet-500 hover:text-violet-700"
+          >
+            Clear filters
+          </button>
+        </div>
       )}
 
       <div className="space-y-4 mt-2">
@@ -179,7 +263,6 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
                       {formatAmount(expense.amount, currency)}
                     </span>
 
-                    {/* More options button — always visible (not hover-dependent) */}
                     <div className="relative flex-shrink-0">
                       <button
                         onClick={(e) => {
@@ -259,14 +342,12 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
         })}
       </div>
 
-      {/* Edit sheet */}
       <AddExpenseSheet
         isOpen={!!editExpense}
         onClose={() => setEditExpense(null)}
         initialExpense={editExpense ?? undefined}
       />
 
-      {/* Undo snackbar */}
       {undoExpense && (
         <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center gap-3 bg-gray-800 text-white text-sm px-4 py-3 rounded-xl shadow-lg max-w-lg mx-auto">
           <span className="flex-1">Expense deleted</span>
