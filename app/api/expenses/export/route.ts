@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const month = searchParams.get("month");
+  const yearParam = searchParams.get("year");
   const categoryId = searchParams.get("categoryId");
   const note = searchParams.get("note");
   const amountMin = searchParams.get("amountMin");
@@ -17,14 +18,19 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filter: Record<string, any> = { userId: new Types.ObjectId(auth.userId) };
+  const filter: Record<string, unknown> = { userId: new Types.ObjectId(auth.userId) };
 
   if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [year, mon] = month.split("-").map(Number);
+    const [y, mon] = month.split("-").map(Number);
     filter.date = {
-      $gte: new Date(Date.UTC(year, mon - 1, 1)),
-      $lt: new Date(Date.UTC(year, mon, 1)),
+      $gte: new Date(Date.UTC(y, mon - 1, 1)),
+      $lt: new Date(Date.UTC(y, mon, 1)),
+    };
+  } else if (yearParam && /^\d{4}$/.test(yearParam)) {
+    const y = Number(yearParam);
+    filter.date = {
+      $gte: new Date(Date.UTC(y, 0, 1)),
+      $lt: new Date(Date.UTC(y + 1, 0, 1)),
     };
   }
 
@@ -61,7 +67,11 @@ export async function GET(req: NextRequest) {
   ];
 
   const csv = rows.join("\r\n");
-  const filename = month ? `expenses-${month}.csv` : "expenses.csv";
+  const filename = month
+    ? `expenses-${month}.csv`
+    : yearParam
+    ? `expenses-${yearParam}.csv`
+    : "expenses.csv";
 
   return new NextResponse(csv, {
     status: 200,

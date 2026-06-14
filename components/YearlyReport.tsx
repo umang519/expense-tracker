@@ -203,23 +203,38 @@ export default function YearlyReport({
         <>
           {/* Grand total */}
           {data.grandTotal > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
-                Total expenses
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {formatAmount(data.grandTotal, currency)}
-              </p>
-              {activeMonths.length > 0 && (
-                <p className="text-sm text-gray-400 mt-0.5">
-                  avg{" "}
-                  {formatAmount(
-                    Math.round(data.grandTotal / activeMonths.length),
-                    currency
-                  )}{" "}
-                  / active month
+            <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+                  Total expenses
                 </p>
-              )}
+                <p className="text-3xl font-bold text-gray-900">
+                  {formatAmount(data.grandTotal, currency)}
+                </p>
+                {activeMonths.length > 0 && (
+                  <p className="text-sm text-gray-400 mt-0.5">
+                    avg{" "}
+                    {formatAmount(
+                      Math.round(data.grandTotal / activeMonths.length),
+                      currency
+                    )}{" "}
+                    / active month
+                  </p>
+                )}
+              </div>
+              <a
+                href={`/api/expenses/export?year=${year}`}
+                download
+                title={`Download ${year} expenses as CSV`}
+                className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-400 hover:text-violet-600 border border-gray-200 hover:border-violet-300 rounded-xl px-3 py-2 transition-colors"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </a>
             </div>
           )}
 
@@ -460,6 +475,7 @@ export default function YearlyReport({
                         </th>
                       ))}
                       <th className="text-right py-2 px-2 font-semibold text-gray-700">Total</th>
+                      <th className="w-6" />
                     </tr>
                   </thead>
                   <tbody>
@@ -467,6 +483,7 @@ export default function YearlyReport({
                       .filter((m) => m.total > 0)
                       .map((m) => {
                         const catLookup = new Map(m.categories.map((c) => [c.categoryId, c.total]));
+                        const monthStr = `${year}-${String(m.month).padStart(2, "0")}`;
                         return (
                           <tr
                             key={m.month}
@@ -482,6 +499,20 @@ export default function YearlyReport({
                             ))}
                             <td className="text-right py-2 px-2 font-semibold text-gray-800">
                               {formatAmount(m.total, currency)}
+                            </td>
+                            <td className="py-2 px-1 text-center">
+                              <a
+                                href={`/api/expenses/export?month=${monthStr}`}
+                                download
+                                title={`Download ${m.label} CSV`}
+                                className="text-gray-300 hover:text-violet-500 transition-colors inline-flex"
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                              </a>
                             </td>
                           </tr>
                         );
@@ -502,6 +533,7 @@ export default function YearlyReport({
                       <td className="text-right py-2 px-2 font-bold text-gray-900">
                         {formatAmount(data.grandTotal, currency)}
                       </td>
+                      <td />
                     </tr>
                   </tfoot>
                 </table>

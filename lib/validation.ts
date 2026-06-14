@@ -92,3 +92,25 @@ export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(8, "New password must be at least 8 characters"),
 });
+
+// ── Recurring expenses ────────────────────────────────────────────────────────
+
+export const RecurringExpenseCreateSchema = z.object({
+  categoryId: z.string().min(1, "Category is required"),
+  amount: z.number().positive("Amount must be greater than 0"),
+  note: z.string().trim().max(200).optional(),
+  frequency: z.enum(["monthly", "weekly", "weekdays"]),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
+    .nullable()
+    .optional(),
+});
+
+export const RecurringExpenseUpdateSchema = RecurringExpenseCreateSchema.partial().extend({
+  isActive: z.boolean().optional(),
+});
+
+export type RecurringExpenseCreateInput = z.infer<typeof RecurringExpenseCreateSchema>;
+export type RecurringExpenseUpdateInput = z.infer<typeof RecurringExpenseUpdateSchema>;

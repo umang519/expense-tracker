@@ -189,7 +189,7 @@ Two quick but high-value wins now that historical data exists:
 - Monthly statement download (CSV). PIN/password protection optional in a later iteration.
 - Closes the loop: data can come in (Phase 9) and go back out.
 
-### Phase 13 — Recurring expenses
+### Phase 13 — Recurring expenses ✅ COMPLETE
 - Recurring entries (rent, subscriptions, phone recharge, EMIs, SIPs) auto-created on a schedule.
 - User sets a template: category, amount, frequency (monthly/weekly), start date.
 - Reduces manual entry for predictable costs and makes reports more accurate.

@@ -245,6 +245,29 @@ export default function SettingsForm({ user }: { user: User }) {
         </form>
       </section>
 
+      {/* Recurring expenses */}
+      <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <a
+          href="/recurring"
+          className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 2.1l4 4-4 4" />
+                <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4" />
+                <path d="M21 11.8v2a4 4 0 0 1-4 4H4.2" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Recurring expenses</p>
+              <p className="text-xs text-gray-400">Rent, SIPs, subscriptions</p>
+            </div>
+          </div>
+          <span className="text-gray-300 text-lg">›</span>
+        </a>
+      </section>
+
       {/* Sign out */}
       <section className="bg-white rounded-2xl border border-gray-100 p-5">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
