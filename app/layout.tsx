@@ -3,12 +3,15 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Expense Tracker",
-  description: "Track your daily expenses",
+  description: "Track your daily expenses — fast, mobile-first, private.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Expense Tracker",
+    statusBarStyle: "black-translucent",
+    title: "Expenses",
   },
 };
 

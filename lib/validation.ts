@@ -67,6 +67,20 @@ export const TransactionUpdateSchema = TransactionCreateSchema.partial();
 export type TransactionCreateInput = z.infer<typeof TransactionCreateSchema>;
 export type TransactionUpdateInput = z.infer<typeof TransactionUpdateSchema>;
 
+// ── Budgets ───────────────────────────────────────────────────────────────────
+
+export const BudgetUpsertSchema = z.object({
+  categoryId: z.string().nullable(),
+  amount: z.number().positive("Amount must be greater than 0"),
+});
+
+export const BudgetUpdateSchema = z.object({
+  amount: z.number().positive("Amount must be greater than 0"),
+});
+
+export type BudgetUpsertInput = z.infer<typeof BudgetUpsertSchema>;
+export type BudgetUpdateInput = z.infer<typeof BudgetUpdateSchema>;
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 export const UpdateProfileSchema = z.object({

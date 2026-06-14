@@ -179,9 +179,9 @@ export default function TransactionsPage() {
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   {year}
                 </span>
-                <span className="text-xs text-gray-400">
+                {/* <span className="text-xs text-gray-400">
                   Spent {formatAmount(yearSpent)} · Invested {formatAmount(yearInvested)} · Received {formatAmount(yearReceived)}
-                </span>
+                </span> */}
               </div>
 
               <ul className="space-y-2">
