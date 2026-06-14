@@ -149,44 +149,78 @@ queries to that user. A user can never query another user's data.
 ## 7. Post-Launch Roadmap (next plan)
 
 The MVP works. These build on it, roughly in priority order. Each is independent —
-tackle them one at a time with Claude Code, same as before. completed
+tackle them one at a time with Claude Code, same as before.
 
-### Phase 9 — Import historical data (HIGHEST PRIORITY)
-~5 months of real data already exists in the original Excel sheet, but the app starts empty,
-so reports and averages have nothing to show. Build an importer so that data lives in the app.
-- A `/settings/import` screen: upload a CSV (or the .xlsx).
-- Server parses rows → maps columns (date, category, amount, note) → creates Expense docs.
-- Map the sheet's four columns (Food/Travel/Investments/Extras) onto the seeded categories.
-- Import the "Major Transactions" rows into the Transaction collection.
-- Show a preview + confirm step before writing; report how many rows imported/skipped.
-- *Tip: export each sheet section to CSV first; CSV parsing is far simpler than .xlsx parsing.*
+### Phase 9 — Import historical data ✅ COMPLETE
+~5 months of real data imported from original Excel sheet. Expense and Transaction docs
+created, preview + confirm step, import summary (rows imported/skipped). Data now lives in
+the app and powers all reports.
 
-### Phase 10 — Budgets & alerts
+### Phase 10 — PWA polish + Report enhancements ← NEXT
+Two quick but high-value wins now that historical data exists:
+
+**a) PWA icon & app identity**
+- Replace placeholder icon with a proper app icon set (all required sizes for iOS/Android).
+- Update `manifest.json`: name, short_name, theme_color, background_color.
+- Makes the installed PWA feel like a real app on the home screen.
+
+**b) Major transactions in reports**
+- Include Dr/Cr transactions in the yearly and monthly report views alongside expenses.
+- Show a separate "Major Transactions" section: credits, debits (non-investment), investments.
+- Net movement card: total received − total spent (expenses + non-investment debits).
+- Transactions should not distort per-category expense charts — keep them separate but visible.
+
+**c) Richer report insights**
+- Highest-spend category this month.
+- Month-over-month delta ("You spent ₹X more on Food than last month").
+- Average daily spend for the selected month/year.
+- Biggest single expense.
+- Fastest-growing category (comparing last 2–3 months).
+
+### Phase 11 — Budgets & alerts
 - Optional monthly budget per category (and an overall monthly budget).
-- Dashboard shows progress bars (spent vs budget) and a visual warning when near/over.
+- Dashboard shows progress bars (spent vs budget) and a visual warning when near/over limit.
 - Model: a `Budget` collection — `userId`, `categoryId?`, `month`/recurring, `amount`.
+- Budget vs. actual comparison visible on the monthly view and reports.
 
-### Phase 11 — Search, filter & export
+### Phase 12 — Search, filter & export
 - Filter expenses by category, date range, amount range, and note text.
-- Export filtered results (and full history) to CSV — doubles as a personal backup.
-- This closes the loop: data can come in (Phase 9) and go back out.
+- Export filtered results (and full history) to CSV — personal backup + data portability.
+- Monthly statement download (CSV). PIN/password protection optional in a later iteration.
+- Closes the loop: data can come in (Phase 9) and go back out.
 
-### Phase 12 — Recurring expenses & richer analytics
-- Recurring entries (rent, subscriptions, monthly recharge) auto-created on a schedule.
-- Month-over-month comparison, top-categories, and a calendar "spending heatmap".
+### Phase 13 — Recurring expenses
+- Recurring entries (rent, subscriptions, phone recharge, EMIs, SIPs) auto-created on a schedule.
+- User sets a template: category, amount, frequency (monthly/weekly), start date.
+- Reduces manual entry for predictable costs and makes reports more accurate.
 
-### Phase 13 — Account security & management
+### Phase 14 — Gentle daily reminders (PWA push notifications)
+- Optional daily nudge: "Log today's expenses?"
+- Opt-in only, gentle, and useful — not engagement-bait.
+- Leverage the existing PWA service worker; users must grant notification permission explicitly.
+
+### Phase 15 — Dashboard quick-entry UX improvements
+The app's primary goal is recording an expense in under 5 seconds. Further improvements:
+- Amount keypad (numeric pad optimised for mobile).
+- One-tap "repeat previous expense" shortcut.
+- "Save and add another" flow for logging multiple items at once.
+- Recent categories shown first in the category picker.
+
+### Phase 16 — Account security, privacy & management
 - Password reset via email + email verification on signup.
 - Login rate-limiting / lockout to resist brute force.
-- "Export all my data" and "Delete my account" (privacy basics for a public userbase).
+- "Export all my data" (full JSON or CSV dump).
+- "Delete my account" with data wipe — privacy essential before opening to more users.
+- Optional: invitation link so a user can refer someone directly to the signup page.
 
-### Phase 14 — Offline-first / PWA hardening
-- Confirm installability; add an app icon set and a complete manifest.
+### Phase 17 — Offline-first / PWA hardening
+- Confirm installability end-to-end; complete icon set + manifest.
 - Service worker for offline viewing of recent data.
-- Queue new expenses entered while offline and sync when back online (true "add from anywhere").
+- Queue expenses entered offline and sync when back online.
 
-### Phase 15 — Quality & operations
-- Tests: unit tests for aggregation/auth logic, a couple of end-to-end flows (login → add → view).
+### Phase 18 — Quality & operations
+- Unit tests for aggregation logic and auth helpers.
+- A couple of end-to-end flows (login → add expense → view dashboard).
 - Error monitoring (e.g. Sentry) so production issues surface.
 - Basic API rate limiting.
 
