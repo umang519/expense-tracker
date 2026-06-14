@@ -267,7 +267,7 @@ export default function CategoriesPage() {
                             )}
                             className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 font-medium hover:bg-violet-100 transition-colors"
                           >
-                            ₹{formatAmount(budgetMap.get(cat._id)!.amount, "INR")}
+                            {formatAmount(budgetMap.get(cat._id)!.amount, "INR")}
                           </button>
                         ) : (
                           <button
@@ -346,7 +346,7 @@ export default function CategoriesPage() {
                   )}
                   className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 font-medium hover:bg-violet-100 transition-colors"
                 >
-                  ₹{formatAmount(overallBudget.amount, "INR")}
+                  {formatAmount(overallBudget.amount, "INR")}
                 </button>
               ) : (
                 <button
@@ -544,7 +544,7 @@ function BudgetInlineForm({
             onChange={(e) => setValue(e.target.value)}
             placeholder="e.g. 5000"
             autoFocus
-            className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white"
           />
         </div>
         <button
