@@ -3,12 +3,6 @@ import webpush from "web-push";
 import { connectDB } from "@/lib/db";
 import PushSubscription from "@/models/PushSubscription";
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL!,
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
 const PAYLOAD = JSON.stringify({
   title: "Expense Tracker",
   body: "Don't forget to log today's expenses! 📝",
@@ -19,6 +13,13 @@ export async function POST(req: NextRequest) {
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Set VAPID details at request time so env vars are available
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL!,
+    process.env.VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
 
   await connectDB();
   const subs = await PushSubscription.find({}).lean();
