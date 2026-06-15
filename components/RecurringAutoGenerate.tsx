@@ -13,8 +13,10 @@ export default function RecurringAutoGenerate() {
       .then((r) => r.json())
       .then((data: { generated?: number }) => {
         sessionStorage.setItem("recurring_generated", "1");
-        if ((data.generated ?? 0) > 0) {
-          // New expenses were created — invalidate so lists/summaries refresh
+        const count = data.generated ?? 0;
+        if (count > 0) {
+          // Store count so the dashboard banner can display it
+          sessionStorage.setItem("recurring_just_logged", String(count));
           qc.invalidateQueries({ queryKey: ["expenses"] });
           qc.invalidateQueries({ queryKey: ["summary"] });
         }
