@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   await connectDB();
   await PushSubscription.findOneAndUpdate(
     { endpoint: parsed.data.endpoint },
-    { userId: user.id, endpoint: parsed.data.endpoint, keys: parsed.data.keys },
+    { userId: user.userId, endpoint: parsed.data.endpoint, keys: parsed.data.keys },
     { upsert: true }
   );
 
@@ -38,7 +38,7 @@ export async function DELETE(req: NextRequest) {
   if (!endpoint) return NextResponse.json({ error: "endpoint required" }, { status: 400 });
 
   await connectDB();
-  await PushSubscription.deleteOne({ userId: user.id, endpoint });
+  await PushSubscription.deleteOne({ userId: user.userId, endpoint });
 
   return NextResponse.json({ ok: true });
 }
