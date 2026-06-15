@@ -7,6 +7,7 @@ import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import MonthSummary from "@/components/MonthSummary";
 import ExpenseList from "@/components/ExpenseList";
+import RecurringLoggedBanner from "@/components/RecurringLoggedBanner";
 import { currentMonth, monthLabel } from "@/lib/format";
 
 export default async function DashboardPage() {
@@ -40,6 +41,9 @@ export default async function DashboardPage() {
           </div>
           <LogoutButton />
         </div>
+
+        {/* Auto-log notice — appears when recurring entries were generated on this open */}
+        <RecurringLoggedBanner />
 
         {/* Monthly summary: total + donut + category bars */}
         <MonthSummary month={month} currency={currency} />

@@ -194,7 +194,7 @@ Two quick but high-value wins now that historical data exists:
 - User sets a template: category, amount, frequency (monthly/weekly), start date.
 - Reduces manual entry for predictable costs and makes reports more accurate.
 
-### Phase 14 — Gentle daily reminders (PWA push notifications)
+### Phase 14 — Gentle daily reminders (PWA push notifications) ✅ COMPLETE
 - Optional daily nudge: "Log today's expenses?"
 - Opt-in only, gentle, and useful — not engagement-bait.
 - Leverage the existing PWA service worker; users must grant notification permission explicitly.
