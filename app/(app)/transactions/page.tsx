@@ -202,7 +202,7 @@ export default function TransactionsPage() {
                       {tx.type}
                     </span>
 
-                    {/* Description + date */}
+                    {/* Description + dates */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-medium text-gray-800 truncate">
