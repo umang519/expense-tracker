@@ -8,13 +8,13 @@ const PAYLOAD = JSON.stringify({
   body: "Don't forget to log today's expenses! 📝",
 });
 
-export async function POST(req: NextRequest) {
+// Vercel cron jobs make GET requests — handler must be GET
+export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Set VAPID details at request time so env vars are available
   webpush.setVapidDetails(
     process.env.VAPID_EMAIL!,
     process.env.VAPID_PUBLIC_KEY!,
