@@ -118,6 +118,49 @@ export default function SettingsForm({ user }: { user: User }) {
     }
   }
 
+  // ── Email change ───────────────────────────────────────────────────────────
+  const [emailStep, setEmailStep] = useState<"idle" | "form" | "otp">("idle");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "sending" | "verifying" | string>("idle");
+
+  async function requestEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailStatus("sending");
+    const res = await fetch("/api/auth/email-change/request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: newEmail }),
+    });
+    if (res.ok) {
+      setEmailStep("otp");
+      setEmailStatus("idle");
+    } else {
+      const d = await res.json();
+      setEmailStatus(d.error ?? "Failed to send code");
+    }
+  }
+
+  async function confirmEmailChange(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailStatus("verifying");
+    const res = await fetch("/api/auth/email-change/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ otp: emailOtp }),
+    });
+    if (res.ok) {
+      setEmailStep("idle");
+      setNewEmail("");
+      setEmailOtp("");
+      setEmailStatus("idle");
+      router.refresh();
+    } else {
+      const d = await res.json();
+      setEmailStatus(d.error ?? "Verification failed");
+    }
+  }
+
   // ── Logout ─────────────────────────────────────────────────────────────────
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -244,6 +287,98 @@ export default function SettingsForm({ user }: { user: User }) {
           </div>
           <StatusButton status={pwStatus} label="Change password" />
         </form>
+      </section>
+
+      {/* Update email */}
+      <section className="bg-white rounded-2xl border border-gray-100 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          Update Email
+        </h2>
+
+        <p className="text-xs text-gray-400 mb-4">
+          Current: <span className="text-gray-600 font-medium">{user.email}</span>
+        </p>
+
+        {emailStep === "idle" && (
+          <button
+            onClick={() => { setEmailStep("form"); setEmailStatus("idle"); }}
+            className="w-full py-2.5 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 text-sm font-medium transition-colors"
+          >
+            Change email address
+          </button>
+        )}
+
+        {emailStep === "form" && (
+          <form onSubmit={requestEmailChange} className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">New email address</label>
+              <input
+                type="email"
+                required
+                value={newEmail}
+                onChange={(e) => { setNewEmail(e.target.value); setEmailStatus("idle"); }}
+                placeholder="you@example.com"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              />
+            </div>
+            {typeof emailStatus === "string" && emailStatus !== "idle" && emailStatus !== "sending" && (
+              <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{emailStatus}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setEmailStep("idle"); setNewEmail(""); setEmailStatus("idle"); }}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={emailStatus === "sending"}
+                className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+              >
+                {emailStatus === "sending" ? "Sending…" : "Send code"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {emailStep === "otp" && (
+          <form onSubmit={confirmEmailChange} className="space-y-3">
+            <p className="text-xs text-gray-500">
+              We sent a 6-digit code to <span className="font-medium text-gray-700">{newEmail}</span>. Enter it below.
+            </p>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              required
+              value={emailOtp}
+              onChange={(e) => { setEmailOtp(e.target.value.replace(/\D/g, "")); setEmailStatus("idle"); }}
+              placeholder="000000"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 text-center tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            />
+            {typeof emailStatus === "string" && emailStatus !== "idle" && emailStatus !== "verifying" && (
+              <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{emailStatus}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setEmailStep("form"); setEmailOtp(""); setEmailStatus("idle"); }}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={emailStatus === "verifying" || emailOtp.length !== 6}
+                className="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-medium transition-colors"
+              >
+                {emailStatus === "verifying" ? "Verifying…" : "Confirm"}
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
       {/* Notifications */}

@@ -199,19 +199,58 @@ Two quick but high-value wins now that historical data exists:
 - Opt-in only, gentle, and useful — not engagement-bait.
 - Leverage the existing PWA service worker; users must grant notification permission explicitly.
 
-### Phase 15 — Dashboard quick-entry UX improvements
+### Phase 15 — Dashboard quick-entry UX improvements ✅ COMPLETE
 The app's primary goal is recording an expense in under 5 seconds. Further improvements:
 - Amount keypad (numeric pad optimised for mobile).
 - One-tap "repeat previous expense" shortcut.
 - "Save and add another" flow for logging multiple items at once.
 - Recent categories shown first in the category picker.
+- Smart merge detection: prompts to merge when same category + date already exists.
 
 ### Phase 16 — Account security, privacy & management
-- Password reset via email + email verification on signup.
-- Login rate-limiting / lockout to resist brute force.
-- "Export all my data" (full JSON or CSV dump).
-- "Delete my account" with data wipe — privacy essential before opening to more users.
-- Optional: invitation link so a user can refer someone directly to the signup page.
+
+**Context:** Several existing accounts were created with unverified or placeholder emails
+(e.g. `umang@gmail.com`). These must be correctable before verification is enforced —
+otherwise existing users get locked out. Execute the four steps below in order.
+
+#### Step 1 — SMTP via Resend (foundation for all email flows)
+- Sign up at resend.com, get API key, add `RESEND_API_KEY` to `.env.local` + Vercel env vars.
+- Install `resend` package (`npm i resend`).
+- Create `lib/email.ts` — a thin wrapper: `sendEmail({ to, subject, html })` that calls the Resend SDK.
+- No UI change yet; this just wires up the plumbing.
+
+#### Step 2 — "Update email" in Settings (fix existing bad emails first)
+- Add an "Update email" card in `/settings` (Settings page → below name/currency section).
+- Flow: user types new email → server sends a 6-digit OTP to the new address → user enters OTP → email updated in DB.
+- API routes needed:
+  - `POST /api/auth/email-change/request` — generate OTP (store hashed in DB with 15-min TTL on User doc), send email.
+  - `POST /api/auth/email-change/confirm` — verify OTP, update `user.email`, clear OTP fields.
+- Add fields to User model: `pendingEmail`, `emailOtp` (hashed), `emailOtpExpiresAt`.
+- **This step deliberately has no "must be verified" gate** — it exists so existing users can correct their email before Step 3 enforces verification.
+- Once all real users have updated to real emails, this card can be hidden or removed from Settings.
+
+#### Step 3 — Email verification on new signups
+- On `POST /api/auth/register`: create account in DB with `isEmailVerified: false`, then send a 6-digit OTP to the registered email.
+- Add `isEmailVerified` (boolean, default `false`) and `verifyOtp` / `verifyOtpExpiresAt` fields to User model.
+- New page `/verify-email`: user enters the 6-digit code. On success, set `isEmailVerified: true`.
+- Middleware: if `isEmailVerified === false`, redirect to `/verify-email` (allow logout and resend-OTP; block everything else).
+- Add "Resend code" button with 60-second cooldown on the verify page.
+- API routes:
+  - `POST /api/auth/verify-email` — check OTP, mark verified.
+  - `POST /api/auth/resend-verification` — rate-limited resend.
+
+#### Step 4 — Password reset via email
+- Add "Forgot password?" link on `/login` page.
+- New page `/forgot-password`: user enters email → receives OTP → enters OTP + new password.
+- API routes:
+  - `POST /api/auth/forgot-password` — find user by email, generate OTP, send email. Return 200 even if email not found (prevents user enumeration).
+  - `POST /api/auth/reset-password` — verify OTP, bcrypt-hash new password, save, clear OTP fields.
+- Add `resetOtp` (hashed) + `resetOtpExpiresAt` to User model.
+- OTP expires in 15 minutes; single-use (clear on success).
+
+#### Execution order summary
+1. Resend SMTP → 2. Update-email in Settings → 3. Verify on signup → 4. Forgot-password
+Steps 1–2 can ship together. Steps 3–4 depend on Step 1 but are independent of each other.
 
 ### Phase 17 — Offline-first / PWA hardening
 - Confirm installability end-to-end; complete icon set + manifest.
