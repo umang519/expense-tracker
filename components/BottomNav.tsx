@@ -89,7 +89,6 @@ const links = [
   { href: "/categories", label: "Categories", Icon: TagIcon },
   { href: "/transactions", label: "Transactions", Icon: ArrowsIcon },
   { href: "/reports", label: "Reports", Icon: ChartIcon },
-
   { href: "/settings", label: "Settings", Icon: GearIcon },
 ];
 
