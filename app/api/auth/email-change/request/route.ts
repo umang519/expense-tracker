@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
-import { sendEmail, otpEmailHtml } from "@/lib/email";
+import { sendEmail, otpEmail } from "@/lib/email";
 import User from "@/models/User";
 
 function generateOtp() {
@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
   });
 
   try {
+    const { html, text } = otpEmail(otp, `Enter this code to confirm ${newEmail} as your new email address.`);
     await sendEmail({
       to: newEmail,
-      subject: "Verify your new email — Expense Tracker",
-      html: otpEmailHtml(otp, `Enter this code to confirm <strong>${newEmail}</strong> as your new email address.`),
+      subject: "Your Expense Tracker verification code",
+      html,
+      text,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
