@@ -47,8 +47,9 @@ export async function POST(req: NextRequest) {
       subject: "Verify your new email — Expense Tracker",
       html: otpEmailHtml(otp, `Enter this code to confirm <strong>${newEmail}</strong> as your new email address.`),
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to send email. Check that RESEND_API_KEY is set." }, { status: 500 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: `Email failed: ${msg}` }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
