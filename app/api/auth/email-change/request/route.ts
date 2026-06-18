@@ -41,11 +41,15 @@ export async function POST(req: NextRequest) {
     emailOtpExpiresAt: expiresAt,
   });
 
-  await sendEmail({
-    to: newEmail,
-    subject: "Verify your new email — Expense Tracker",
-    html: otpEmailHtml(otp, `Enter this code to confirm <strong>${newEmail}</strong> as your new email address.`),
-  });
+  try {
+    await sendEmail({
+      to: newEmail,
+      subject: "Verify your new email — Expense Tracker",
+      html: otpEmailHtml(otp, `Enter this code to confirm <strong>${newEmail}</strong> as your new email address.`),
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to send email. Check that RESEND_API_KEY is set." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

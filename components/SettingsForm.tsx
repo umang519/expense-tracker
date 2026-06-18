@@ -127,37 +127,45 @@ export default function SettingsForm({ user }: { user: User }) {
   async function requestEmailChange(e: React.FormEvent) {
     e.preventDefault();
     setEmailStatus("sending");
-    const res = await fetch("/api/auth/email-change/request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: newEmail }),
-    });
-    if (res.ok) {
-      setEmailStep("otp");
-      setEmailStatus("idle");
-    } else {
-      const d = await res.json();
-      setEmailStatus(d.error ?? "Failed to send code");
+    try {
+      const res = await fetch("/api/auth/email-change/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newEmail }),
+      });
+      if (res.ok) {
+        setEmailStep("otp");
+        setEmailStatus("idle");
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setEmailStatus(d.error ?? "Failed to send code");
+      }
+    } catch {
+      setEmailStatus("Network error. Please try again.");
     }
   }
 
   async function confirmEmailChange(e: React.FormEvent) {
     e.preventDefault();
     setEmailStatus("verifying");
-    const res = await fetch("/api/auth/email-change/confirm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ otp: emailOtp }),
-    });
-    if (res.ok) {
-      setEmailStep("idle");
-      setNewEmail("");
-      setEmailOtp("");
-      setEmailStatus("idle");
-      router.refresh();
-    } else {
-      const d = await res.json();
-      setEmailStatus(d.error ?? "Verification failed");
+    try {
+      const res = await fetch("/api/auth/email-change/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp: emailOtp }),
+      });
+      if (res.ok) {
+        setEmailStep("idle");
+        setNewEmail("");
+        setEmailOtp("");
+        setEmailStatus("idle");
+        router.refresh();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setEmailStatus(d.error ?? "Verification failed");
+      }
+    } catch {
+      setEmailStatus("Network error. Please try again.");
     }
   }
 
