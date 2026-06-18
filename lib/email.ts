@@ -1,6 +1,16 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const FROM = "Expense Tracker <onboarding@resend.dev>";
+function createTransport() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USERNAME,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+}
 
 export async function sendEmail({
   to,
@@ -11,9 +21,13 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const { error } = await resend.emails.send({ from: FROM, to, subject, html });
-  if (error) throw new Error(error.message);
+  const transporter = createTransport();
+  await transporter.sendMail({
+    from: `"Expense Tracker" <${process.env.SMTP_USERNAME}>`,
+    to,
+    subject,
+    html,
+  });
 }
 
 export function otpEmailHtml(otp: string, purpose: string) {
