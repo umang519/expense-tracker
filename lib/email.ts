@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM = "Expense Tracker <onboarding@resend.dev>";
 
 export async function sendEmail({
@@ -13,6 +11,7 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({ from: FROM, to, subject, html });
   if (error) throw new Error(error.message);
 }
