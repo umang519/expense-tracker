@@ -4,8 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { getQueue, QUEUE_CHANGED_EVENT } from "@/lib/offlineQueue";
 
 export default function OfflineIndicator() {
-  const [online, setOnline] = useState(true);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [online, setOnline] = useState(() =>
+    typeof window !== "undefined" ? navigator.onLine : true
+  );
+  const [pendingCount, setPendingCount] = useState(() =>
+    typeof window !== "undefined" ? getQueue().length : 0
+  );
 
   const refresh = useCallback(() => {
     setOnline(navigator.onLine);
@@ -13,7 +17,6 @@ export default function OfflineIndicator() {
   }, []);
 
   useEffect(() => {
-    refresh();
     window.addEventListener("online", refresh);
     window.addEventListener("offline", refresh);
     window.addEventListener(QUEUE_CHANGED_EVENT, refresh);
