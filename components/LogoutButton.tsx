@@ -1,22 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import SignOutModal from "./SignOutModal";
 
 export default function LogoutButton() {
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
+  const [open, setOpen] = useState(false);
 
   return (
-    <button
-      onClick={handleLogout}
-      className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
-    >
-      Sign out
-    </button>
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="text-sm border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 font-medium px-3 py-1.5 rounded-lg transition-colors"
+      >
+        Sign out
+      </button>
+
+      <SignOutModal isOpen={open} onClose={() => setOpen(false)} />
+    </>
   );
 }

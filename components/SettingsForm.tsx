@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "./PasswordInput";
 import NotificationToggle from "./NotificationToggle";
+import SignOutModal from "./SignOutModal";
 
 const CURRENCIES = [
   { code: "INR", label: "₹ Indian Rupee" },
@@ -185,12 +186,8 @@ export default function SettingsForm({ user }: { user: User }) {
     }
   }
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
+  // ── Sign out modal ─────────────────────────────────────────────────────────
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -437,12 +434,14 @@ export default function SettingsForm({ user }: { user: User }) {
           Account
         </h2>
         <button
-          onClick={handleLogout}
+          onClick={() => setSignOutOpen(true)}
           className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
         >
           Sign out
         </button>
       </section>
+
+      <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />
     </div>
   );
 }
