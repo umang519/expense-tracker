@@ -252,7 +252,7 @@ otherwise existing users get locked out. Execute the four steps below in order.
 1. Resend SMTP → 2. Update-email in Settings → 3. Verify on signup → 4. Forgot-password
 Steps 1–2 can ship together. Steps 3–4 depend on Step 1 but are independent of each other.
 
-### Phase 17 — Offline-first / PWA hardening
+### Phase 17 — Offline-first / PWA hardening ✅ COMPLETE
 - Confirm installability end-to-end; complete icon set + manifest.
 - Service worker for offline viewing of recent data.
 - Queue expenses entered offline and sync when back online.

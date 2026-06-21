@@ -54,6 +54,7 @@ export default function CategoriesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
   const [editingBudgetId, setEditingBudgetId] = useState<string | null>(""); // categoryId or "overall"
+  const [mutationError, setMutationError] = useState("");
 
   const active = categories.filter((c) => !c.isArchived);
   const archived = categories.filter((c) => c.isArchived);
@@ -116,11 +117,12 @@ export default function CategoriesPage() {
         body: archive ? undefined : JSON.stringify({ isArchived: false }),
       });
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.error ?? "Failed");
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onError: (err) => setMutationError(err.message || "Network error. Please try again."),
   });
 
   // ── Budget mutations ───────────────────────────────────────────────────────
@@ -133,7 +135,7 @@ export default function CategoriesPage() {
         body: JSON.stringify({ categoryId, amount }),
       });
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.error ?? "Failed to save budget");
       }
     },
@@ -142,13 +144,14 @@ export default function CategoriesPage() {
       qc.invalidateQueries({ queryKey: ["summary"] });
       setEditingBudgetId("");
     },
+    onError: (err) => setMutationError(err.message || "Network error. Please try again."),
   });
 
   const deleteBudget = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         throw new Error(err.error ?? "Failed to remove budget");
       }
     },
@@ -157,6 +160,7 @@ export default function CategoriesPage() {
       qc.invalidateQueries({ queryKey: ["summary"] });
       setEditingBudgetId("");
     },
+    onError: (err) => setMutationError(err.message || "Network error. Please try again."),
   });
 
   if (isLoading) {
@@ -198,6 +202,13 @@ export default function CategoriesPage() {
             </button>
           )}
         </div>
+
+        {mutationError && (
+          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
+            <p className="text-sm text-red-600">{mutationError}</p>
+            <button onClick={() => setMutationError("")} className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0">✕</button>
+          </div>
+        )}
 
         {/* Add form */}
         {showAddForm && (

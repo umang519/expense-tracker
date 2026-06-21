@@ -33,19 +33,24 @@ export default function SettingsForm({ user }: { user: User }) {
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
+    if (!navigator.onLine) { setProfileStatus("You're offline. Connect to save changes."); return; }
     setProfileStatus("saving");
-    const res = await fetch("/api/auth/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() || undefined }),
-    });
-    if (res.ok) {
-      setProfileStatus("saved");
-      router.refresh();
-      setTimeout(() => setProfileStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      setProfileStatus(d.error ?? "Failed to save");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() || undefined }),
+      });
+      if (res.ok) {
+        setProfileStatus("saved");
+        router.refresh();
+        setTimeout(() => setProfileStatus("idle"), 2000);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setProfileStatus(d.error ?? "Failed to save");
+      }
+    } catch {
+      setProfileStatus("Network error. Please try again.");
     }
   }
 
@@ -55,19 +60,24 @@ export default function SettingsForm({ user }: { user: User }) {
 
   async function saveCurrency(e: React.FormEvent) {
     e.preventDefault();
+    if (!navigator.onLine) { setCurrencyStatus("You're offline. Connect to save changes."); return; }
     setCurrencyStatus("saving");
-    const res = await fetch("/api/auth/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currency }),
-    });
-    if (res.ok) {
-      setCurrencyStatus("saved");
-      router.refresh();
-      setTimeout(() => setCurrencyStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      setCurrencyStatus(d.error ?? "Failed to save");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency }),
+      });
+      if (res.ok) {
+        setCurrencyStatus("saved");
+        router.refresh();
+        setTimeout(() => setCurrencyStatus("idle"), 2000);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setCurrencyStatus(d.error ?? "Failed to save");
+      }
+    } catch {
+      setCurrencyStatus("Network error. Please try again.");
     }
   }
 
@@ -95,26 +105,32 @@ export default function SettingsForm({ user }: { user: User }) {
       return;
     }
 
+    if (!navigator.onLine) { setPwStatus("You're offline. Connect to change password."); return; }
     setPwStatus("saving");
-    const res = await fetch("/api/auth/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
-    });
-    if (res.ok) {
-      setPwStatus("saved");
-      setCurrentPw("");
-      setNewPw("");
-      setConfirmPw("");
-      setTimeout(() => setPwStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      const msg: string = d.error ?? "Failed to change password";
-      if (msg.toLowerCase().includes("current") || msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("wrong")) {
-        setPwFieldErrors((prev) => ({ ...prev, current: msg }));
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+      });
+      if (res.ok) {
+        setPwStatus("saved");
+        setCurrentPw("");
+        setNewPw("");
+        setConfirmPw("");
+        setTimeout(() => setPwStatus("idle"), 2000);
       } else {
-        setPwStatus(msg);
+        const d = await res.json().catch(() => ({}));
+        const msg: string = d.error ?? "Failed to change password";
+        if (msg.toLowerCase().includes("current") || msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("wrong")) {
+          setPwFieldErrors((prev) => ({ ...prev, current: msg }));
+          setPwStatus("idle");
+        } else {
+          setPwStatus(msg);
+        }
       }
+    } catch {
+      setPwStatus("Network error. Please try again.");
     }
   }
 

@@ -41,6 +41,7 @@ export default function TransactionsPage() {
   const [sheetMode, setSheetMode] = useState<null | "add" | Transaction>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
   const { data: transactions = [], isLoading, isError } = useQuery({
     queryKey: ["transactions"],
@@ -64,6 +65,7 @@ export default function TransactionsPage() {
     },
     onError: (_err, _id, ctx) => {
       if (ctx?.prev) qc.setQueryData(["transactions"], ctx.prev);
+      setDeleteError("Could not delete. Please try again.");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
   });
@@ -118,6 +120,13 @@ export default function TransactionsPage() {
             <span className="text-base leading-none">+</span> Add
           </button>
         </div>
+
+        {deleteError && (
+          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
+            <p className="text-sm text-red-600">{deleteError}</p>
+            <button onClick={() => setDeleteError("")} className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0">✕</button>
+          </div>
+        )}
 
         {/* Summary card */}
         {transactions.length > 0 && (
@@ -363,21 +372,25 @@ function TransactionSheet({
     const url = initial ? `/api/transactions/${initial._id}` : "/api/transactions";
     const method = initial ? "PATCH" : "POST";
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    setSaving(false);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setError(err.error ?? "Something went wrong");
+        return;
+      }
 
-    if (!res.ok) {
-      const err = await res.json();
-      setError(err.error ?? "Something went wrong");
-      return;
+      onSaved();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
     }
-
-    onSaved();
   }
 
   return (
