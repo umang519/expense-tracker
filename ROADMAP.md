@@ -207,7 +207,7 @@ The app's primary goal is recording an expense in under 5 seconds. Further impro
 - Recent categories shown first in the category picker.
 - Smart merge detection: prompts to merge when same category + date already exists.
 
-### Phase 16 — Account security, privacy & management
+### Phase 16 — Account security, privacy & management ✅ COMPLETE
 
 **Context:** Several existing accounts were created with unverified or placeholder emails
 (e.g. `umang@gmail.com`). These must be correctable before verification is enforced —
