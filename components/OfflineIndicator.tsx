@@ -1,31 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getQueue, QUEUE_CHANGED_EVENT } from "@/lib/offlineQueue";
 
 export default function OfflineIndicator() {
   const [online, setOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
 
-  function refresh() {
+  const refresh = useCallback(() => {
     setOnline(navigator.onLine);
     setPendingCount(getQueue().length);
-  }
+  }, []);
 
   useEffect(() => {
     refresh();
-
     window.addEventListener("online", refresh);
     window.addEventListener("offline", refresh);
     window.addEventListener(QUEUE_CHANGED_EVENT, refresh);
-
     return () => {
       window.removeEventListener("online", refresh);
       window.removeEventListener("offline", refresh);
       window.removeEventListener(QUEUE_CHANGED_EVENT, refresh);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
   if (online && pendingCount === 0) return null;
 

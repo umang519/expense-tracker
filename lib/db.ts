@@ -16,8 +16,7 @@ interface MongooseCache {
 
 // Extend the Node.js global so the cache survives hot reloads in dev.
 declare global {
-  // eslint-disable-next-line no-var
-  var _mongooseCache: MongooseCache | undefined;
+  var _mongooseCache: MongooseCache | undefined; // required for global augmentation
 }
 
 const cache: MongooseCache = global._mongooseCache ?? { conn: null, promise: null };
