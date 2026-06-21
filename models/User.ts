@@ -8,6 +8,9 @@ export interface IUser extends Document {
   pendingEmail?: string;
   emailOtp?: string;
   emailOtpExpiresAt?: Date;
+  isEmailVerified: boolean;
+  verifyOtp?: string;
+  verifyOtpExpiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +39,9 @@ const UserSchema = new Schema<IUser>(
     pendingEmail: { type: String },
     emailOtp: { type: String },
     emailOtpExpiresAt: { type: Date },
+    isEmailVerified: { type: Boolean, default: false },
+    verifyOtp: { type: String },
+    verifyOtpExpiresAt: { type: Date },
   },
   { timestamps: true }
 );

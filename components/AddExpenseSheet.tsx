@@ -294,7 +294,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
 
         {/* Amount display */}
         <div className="px-5 pb-3 text-center">
-          <div className={`text-5xl font-bold tracking-tight transition-colors ${amount ? "text-gray-900" : "text-gray-300"}`}>
+          <div className={`text-4xl font-bold tracking-tight transition-colors ${amount ? "text-gray-900" : "text-gray-300"}`}>
             ₹{amount || "0"}
           </div>
         </div>
@@ -402,7 +402,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
               key={key}
               type="button"
               onClick={() => handleKey(key)}
-              className={`py-4 text-xl font-medium transition-colors select-none active:bg-gray-100
+              className={`py-2.5 text-lg font-medium transition-colors select-none active:bg-gray-100
                 ${key === "⌫" ? "text-gray-400 hover:text-gray-600" : "text-gray-800 hover:bg-gray-50"}
                 border-b border-r border-gray-100 last:border-r-0
               `}

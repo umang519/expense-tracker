@@ -48,8 +48,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
   }
 
   const inputClass =

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { connectDB } from "@/lib/db";
-import { hashPassword, signJWT, COOKIE_NAME } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
 import { RegisterSchema } from "@/lib/validation";
+import { sendEmail, otpEmail } from "@/lib/email";
 import User from "@/models/User";
 import Category from "@/models/Category";
 
@@ -12,14 +14,19 @@ const DEFAULT_CATEGORIES = [
   { name: "Extras", color: "#8B5CF6", sortOrder: 3 },
 ];
 
+function generateOtp() {
+  return String(Math.floor(100000 + crypto.randomInt(900000)));
+}
+
+function hashOtp(otp: string) {
+  return crypto.createHash("sha256").update(otp).digest("hex");
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = RegisterSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.errors[0].message },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
   }
 
   const { email, password, name } = parsed.data;
@@ -28,43 +35,39 @@ export async function POST(req: NextRequest) {
 
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
-    return NextResponse.json(
-      { error: "An account with this email already exists" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "An account with this email already exists" }, { status: 400 });
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await User.create({ email, passwordHash, name });
+  const otp = generateOtp();
+  const hashed = hashOtp(otp);
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+  const user = await User.create({
+    email,
+    passwordHash,
+    name,
+    isEmailVerified: false,
+    verifyOtp: hashed,
+    verifyOtpExpiresAt: expiresAt,
+  });
 
   await Category.insertMany(
     DEFAULT_CATEGORIES.map((cat) => ({ ...cat, userId: user._id }))
   );
 
-  const token = await signJWT({
-    sub: user._id.toString(),
-    email: user.email,
-  });
+  try {
+    const { html, text } = otpEmail(otp, "Enter this code to verify your email and activate your Expense Tracker account.");
+    await sendEmail({
+      to: user.email,
+      subject: "Verify your email — Expense Tracker",
+      html,
+      text,
+    });
+  } catch {
+    await User.findByIdAndDelete(user._id);
+    return NextResponse.json({ error: "Failed to send verification email. Please try again." }, { status: 500 });
+  }
 
-  const response = NextResponse.json(
-    {
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        currency: user.currency,
-      },
-    },
-    { status: 201 }
-  );
-
-  response.cookies.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  return response;
+  return NextResponse.json({ email: user.email }, { status: 201 });
 }
