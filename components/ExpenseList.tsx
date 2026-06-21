@@ -50,6 +50,7 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editExpense, setEditExpense] = useState<PopulatedExpense | null>(null);
   const [undoExpense, setUndoExpense] = useState<PopulatedExpense | null>(null);
+  const [deleteError, setDeleteError] = useState("");
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -65,6 +66,8 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
     },
     onError: () => {
       qc.invalidateQueries({ queryKey: ["expenses", month] });
+      setDeleteError("Could not delete. Please try again.");
+      setTimeout(() => setDeleteError(""), 4000);
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["expenses", month] });
@@ -357,6 +360,13 @@ export default function ExpenseList({ month, currency = "INR" }: Props) {
           >
             Undo
           </button>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center gap-3 bg-red-600 text-white text-sm px-4 py-3 rounded-xl shadow-lg max-w-lg mx-auto">
+          <span className="flex-1">{deleteError}</span>
+          <button onClick={() => setDeleteError("")} className="font-semibold hover:opacity-80 py-0.5 px-2 rounded">✕</button>
         </div>
       )}
     </>

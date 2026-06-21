@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "./PasswordInput";
 import NotificationToggle from "./NotificationToggle";
+import SignOutModal from "./SignOutModal";
 
 const CURRENCIES = [
   { code: "INR", label: "₹ Indian Rupee" },
@@ -33,19 +34,24 @@ export default function SettingsForm({ user }: { user: User }) {
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
+    if (!navigator.onLine) { setProfileStatus("You're offline. Connect to save changes."); return; }
     setProfileStatus("saving");
-    const res = await fetch("/api/auth/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() || undefined }),
-    });
-    if (res.ok) {
-      setProfileStatus("saved");
-      router.refresh();
-      setTimeout(() => setProfileStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      setProfileStatus(d.error ?? "Failed to save");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() || undefined }),
+      });
+      if (res.ok) {
+        setProfileStatus("saved");
+        router.refresh();
+        setTimeout(() => setProfileStatus("idle"), 2000);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setProfileStatus(d.error ?? "Failed to save");
+      }
+    } catch {
+      setProfileStatus("Network error. Please try again.");
     }
   }
 
@@ -55,19 +61,24 @@ export default function SettingsForm({ user }: { user: User }) {
 
   async function saveCurrency(e: React.FormEvent) {
     e.preventDefault();
+    if (!navigator.onLine) { setCurrencyStatus("You're offline. Connect to save changes."); return; }
     setCurrencyStatus("saving");
-    const res = await fetch("/api/auth/me", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currency }),
-    });
-    if (res.ok) {
-      setCurrencyStatus("saved");
-      router.refresh();
-      setTimeout(() => setCurrencyStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      setCurrencyStatus(d.error ?? "Failed to save");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency }),
+      });
+      if (res.ok) {
+        setCurrencyStatus("saved");
+        router.refresh();
+        setTimeout(() => setCurrencyStatus("idle"), 2000);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setCurrencyStatus(d.error ?? "Failed to save");
+      }
+    } catch {
+      setCurrencyStatus("Network error. Please try again.");
     }
   }
 
@@ -95,26 +106,32 @@ export default function SettingsForm({ user }: { user: User }) {
       return;
     }
 
+    if (!navigator.onLine) { setPwStatus("You're offline. Connect to change password."); return; }
     setPwStatus("saving");
-    const res = await fetch("/api/auth/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
-    });
-    if (res.ok) {
-      setPwStatus("saved");
-      setCurrentPw("");
-      setNewPw("");
-      setConfirmPw("");
-      setTimeout(() => setPwStatus("idle"), 2000);
-    } else {
-      const d = await res.json();
-      const msg: string = d.error ?? "Failed to change password";
-      if (msg.toLowerCase().includes("current") || msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("wrong")) {
-        setPwFieldErrors((prev) => ({ ...prev, current: msg }));
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+      });
+      if (res.ok) {
+        setPwStatus("saved");
+        setCurrentPw("");
+        setNewPw("");
+        setConfirmPw("");
+        setTimeout(() => setPwStatus("idle"), 2000);
       } else {
-        setPwStatus(msg);
+        const d = await res.json().catch(() => ({}));
+        const msg: string = d.error ?? "Failed to change password";
+        if (msg.toLowerCase().includes("current") || msg.toLowerCase().includes("incorrect") || msg.toLowerCase().includes("wrong")) {
+          setPwFieldErrors((prev) => ({ ...prev, current: msg }));
+          setPwStatus("idle");
+        } else {
+          setPwStatus(msg);
+        }
       }
+    } catch {
+      setPwStatus("Network error. Please try again.");
     }
   }
 
@@ -169,12 +186,8 @@ export default function SettingsForm({ user }: { user: User }) {
     }
   }
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
+  // ── Sign out modal ─────────────────────────────────────────────────────────
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -421,12 +434,14 @@ export default function SettingsForm({ user }: { user: User }) {
           Account
         </h2>
         <button
-          onClick={handleLogout}
+          onClick={() => setSignOutOpen(true)}
           className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
         >
           Sign out
         </button>
       </section>
+
+      <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />
     </div>
   );
 }

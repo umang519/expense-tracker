@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Category, PopulatedExpense } from "@/lib/types";
 import { clientFetch } from "@/lib/client-fetch";
+import { enqueue } from "@/lib/offlineQueue";
 
 function todayString() {
   const d = new Date();
@@ -243,8 +244,35 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
       if (duplicate) { setMergeCandidate(duplicate); return; }
     }
 
-    keepOpenRef.current = keepOpen;
     const payload = { date, categoryId, amount: parsed, note: note.trim() };
+
+    // Offline path: queue expense and add optimistic item to cache
+    if (!navigator.onLine && !isEdit) {
+      const cat = categories.find((c) => c._id === categoryId);
+      const m = date.substring(0, 7);
+      const pending = enqueue(payload);
+      const optimistic: PopulatedExpense = {
+        _id: `pending-${pending.id}`,
+        date: date + "T00:00:00.000Z",
+        amount: parsed,
+        note: note.trim() || undefined,
+        categoryId: cat
+          ? { _id: cat._id, name: cat.name, color: cat.color }
+          : { _id: categoryId, name: "…", color: "#d1d5db" },
+      };
+      qc.setQueryData<PopulatedExpense[]>(["expenses", m], (old) => [optimistic, ...(old ?? [])]);
+      saveRecentId(categoryId);
+      if (keepOpen) {
+        setAmount("");
+        setNote("");
+        setError("");
+      } else {
+        onClose();
+      }
+      return;
+    }
+
+    keepOpenRef.current = keepOpen;
     if (isEdit) editMutation.mutate(payload);
     else addMutation.mutate(payload);
   }
