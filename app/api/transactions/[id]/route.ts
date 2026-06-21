@@ -25,7 +25,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: Record<string, any> = {};
   if (parsed.data.date) {
     const [y, m, d] = parsed.data.date.split("-").map(Number);

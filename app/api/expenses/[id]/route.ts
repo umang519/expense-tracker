@@ -28,7 +28,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   await connectDB();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: Record<string, any> = {};
 
   if (parsed.data.date) {

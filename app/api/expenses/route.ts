@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filter: Record<string, any> = { userId: auth.userId };
 
   if (month && /^\d{4}-\d{2}$/.test(month)) {

@@ -44,7 +44,7 @@ export default function SignOutModal({ isOpen, onClose }: Props) {
           Sign out?
         </h2>
         <p className="text-sm text-gray-500 text-center mb-6">
-          You'll need to sign in again to access your expenses.
+          You&apos;ll need to sign in again to access your expenses.
         </p>
 
         <div className="flex gap-3">
