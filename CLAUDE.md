@@ -43,7 +43,7 @@ lib/
   validation.ts    # Zod schemas
 models/            # Mongoose models: User, Category, Expense, Transaction
 components/        # UI components
-middleware.ts      # protects (app) routes, redirects unauthenticated users to /login
+proxy.ts           # protects (app) routes, redirects unauthenticated users to /login
 ```
 
 ## Data models

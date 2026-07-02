@@ -18,11 +18,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm install
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
       - name: Lint
         run: npm run lint
@@ -35,3 +37,4 @@ jobs:
           # GitHub → Settings → Secrets and variables → Actions
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXT_TELEMETRY_DISABLED: 1
