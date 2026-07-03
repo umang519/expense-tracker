@@ -247,6 +247,9 @@ export default function SettingsForm({ user }: { user: User }) {
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-400 mt-1.5">
+              Changes only the symbol shown — amounts are not converted between currencies.
+            </p>
           </div>
           <StatusButton status={currencyStatus} label="Save currency" />
         </form>

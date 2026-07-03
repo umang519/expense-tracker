@@ -52,6 +52,11 @@ Summaries are **computed via MongoDB aggregation at query time** — never store
 Expenses are the single source of truth.
 
 - **User**: `email` (unique, lowercased), `passwordHash`, `name?`, `currency` (default `"INR"`).
+  `currency` is a **display symbol only** — changing it re-labels amounts via `Intl.NumberFormat`
+  (see `lib/format.ts`), it does **not** convert stored numbers. All current users are Indian, so
+  real FX conversion is deliberately out of scope; don't add it without a product decision, since
+  converting at today's rate would make past months' totals drift as rates change (summaries are
+  aggregated live from stored numbers, so historical accuracy would break — see rule 5 below).
 - **Category** (per user): `userId`, `name`, `color`, `sortOrder`, `isArchived`. Seed 4 defaults on signup: Food, Travel, Investments, Extras.
 - **Expense** (one doc per expense, NOT per day): `userId`, `date`, `categoryId`, `amount` (>0), `note?`. Index `{ userId: 1, date: -1 }`.
 - **Transaction** (major one-offs): `userId`, `date`, `amount`, `type: "Dr" | "Cr"`, `description`.
