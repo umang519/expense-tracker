@@ -263,6 +263,49 @@ Steps 1–2 can ship together. Steps 3–4 depend on Step 1 but are independent 
 - Error monitoring (e.g. Sentry) so production issues surface.
 - Basic API rate limiting.
 
+### Phase 19 — Settings & account management polish
+Triaged from `docs/SETTINGS.SUGGESTIONS.MD`. Now that other users besides the owner are on the
+app, account-level controls (delete, security) matter more than before. Priority order:
+
+**a) Currency clarity ✅ COMPLETE**
+- `currency` was always a display label, never a conversion (see CLAUDE.md). Added an explicit
+  caption under the currency select in `SettingsForm.tsx` so this isn't a silent surprise.
+- Deliberately **not** implementing real FX conversion — single benefit (all users currently
+  Indian) doesn't justify the cost (historical-rate lookups, drifting past-month totals since
+  summaries are aggregated live, not stored). Revisit only if non-INR users actually show up.
+
+**b) Delete Account** — highest priority
+- New "Delete account" action under the existing Account section in `/settings`, below Sign out.
+- Confirm modal: lists what gets deleted (Expenses, Categories, Transactions, Recurring
+  templates, Budgets), requires typing `DELETE` to proceed.
+- `DELETE /api/auth/me`: cascading delete of every collection scoped to `userId` (Expense,
+  Category, Transaction, Budget, Recurring, User), then clear the JWT cookie and redirect to
+  `/login`. Must follow rule 1 — everything scoped by the verified JWT's `userId`, nothing from
+  the request body.
+
+**c) Theme (Light / Dark / System)**
+- Add under Preferences, alongside Currency.
+- Tailwind `dark:` classes + a stored preference (User field or localStorage — decide based on
+  whether it should sync across devices; localStorage is simpler and sufficient for a personal
+  app). Respect `prefers-color-scheme` for "System".
+
+**d) About section**
+- Small static card: app version, link to GitHub repo, privacy/contact info if applicable.
+- Trivial effort, ships alongside (b) or (c) whenever convenient.
+
+**e) Export/Import discoverability**
+- CSV export already lives in `/reports` (`YearlyReport.tsx`, per-year and per-month download
+  links) and fits there well — **not moving it**. If it turns out users don't find it, add a
+  one-line link from Settings → Reports pointing at it, same pattern as the existing "Recurring
+  Expenses" quick link in `SettingsForm.tsx`.
+- Import/restore is a real feature (validation, duplicate/conflict handling) but bigger than it
+  looks — deferred, revisit only if requested.
+
+**Explicitly deferred** (tracked in `docs/IDEAS.md`, not planned yet): active sessions / sign-out-
+everywhere (needs server-side session tracking, not just a single JWT cookie), offline cache size
+display + clear button, language/i18n, reminder-time customization beyond the current on/off
+toggle, auto-enable-save-button UX polish.
+
 ---
 
 ## 8. Security Checklist (keep enforcing)
