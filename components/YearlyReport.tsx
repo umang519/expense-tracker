@@ -100,10 +100,10 @@ function InsightCard({ label, value, sub, accent }: {
   accent?: string;
 }) {
   return (
-    <div className="flex-shrink-0 bg-white rounded-2xl border border-gray-100 px-4 py-3 min-w-[140px]">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className={`text-sm font-bold ${accent ?? "text-gray-900"} leading-tight`}>{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5 leading-tight">{sub}</p>}
+    <div className="flex-shrink-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-4 py-3 min-w-[140px]">
+      <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{label}</p>
+      <p className={`text-sm font-bold ${accent ?? "text-gray-900 dark:text-gray-100"} leading-tight`}>{value}</p>
+      {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-tight">{sub}</p>}
     </div>
   );
 }
@@ -154,23 +154,23 @@ export default function YearlyReport({
   return (
     <div className="space-y-4">
       {/* Year navigation */}
-      <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-100 px-5 py-3">
+      <div className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-5 py-3">
         <button
           onClick={() => setYear((y) => y - 1)}
-          className="text-gray-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50 text-sm"
+          className="text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/10 text-sm"
         >
           ← {year - 1}
         </button>
         <div className="text-center">
-          <p className="text-base font-bold text-gray-900">{year}</p>
+          <p className="text-base font-bold text-gray-900 dark:text-gray-100">{year}</p>
           {year === currentYear && (
-            <p className="text-xs text-violet-500 font-medium">This year</p>
+            <p className="text-xs text-violet-500 dark:text-violet-400 font-medium">This year</p>
           )}
         </div>
         <button
           onClick={() => setYear((y) => y + 1)}
           disabled={year >= currentYear}
-          className="text-gray-500 hover:text-violet-600 disabled:text-gray-300 disabled:cursor-default transition-colors px-2 py-1 rounded-lg hover:bg-violet-50 disabled:hover:bg-transparent text-sm"
+          className="text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 disabled:text-gray-300 disabled:cursor-default transition-colors px-2 py-1 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/10 disabled:hover:bg-transparent text-sm"
         >
           {year + 1} →
         </button>
@@ -179,21 +179,21 @@ export default function YearlyReport({
       {isLoading && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />
           ))}
         </div>
       )}
 
       {isError && (
-        <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
-          <p className="text-sm text-red-500">Could not load report. Try refreshing.</p>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/50 p-8 text-center">
+          <p className="text-sm text-red-500 dark:text-red-400">Could not load report. Try refreshing.</p>
         </div>
       )}
 
       {!isLoading && !isError && data && data.grandTotal === 0 && !hasTx && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-          <p className="text-gray-600 font-medium mb-1.5">No data in {year}</p>
-          <p className="text-gray-400 text-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-10 text-center">
+          <p className="text-gray-600 dark:text-gray-400 font-medium mb-1.5">No data in {year}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">
             Add expenses from the dashboard and your yearly report will appear here.
           </p>
         </div>
@@ -203,16 +203,16 @@ export default function YearlyReport({
         <>
           {/* Grand total */}
           {data.grandTotal > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center justify-between gap-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 px-5 py-4 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">
                   Total expenses
                 </p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   {formatAmount(data.grandTotal, currency)}
                 </p>
                 {activeMonths.length > 0 && (
-                  <p className="text-sm text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
                     avg{" "}
                     {formatAmount(
                       Math.round(data.grandTotal / activeMonths.length),
@@ -226,7 +226,7 @@ export default function YearlyReport({
                 href={`/api/expenses/export?year=${year}`}
                 download
                 title={`Download ${year} expenses as CSV`}
-                className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-400 hover:text-violet-600 border border-gray-200 hover:border-violet-300 rounded-xl px-3 py-2 transition-colors"
+                className="flex-shrink-0 flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 border border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-700 rounded-xl px-3 py-2 transition-colors"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -247,7 +247,7 @@ export default function YearlyReport({
                     label="Top category"
                     value={topCategory.name}
                     sub={`${topCategory.percentage}% · ${formatAmount(topCategory.total, currency)}`}
-                    accent="text-gray-900"
+                    accent="text-gray-900 dark:text-gray-100"
                   />
                 )}
                 {highestMonth && (
@@ -255,7 +255,7 @@ export default function YearlyReport({
                     label="Highest month"
                     value={highestMonth.label}
                     sub={formatAmount(highestMonth.total, currency)}
-                    accent="text-red-500"
+                    accent="text-red-500 dark:text-red-400"
                   />
                 )}
                 {lowestMonth && (
@@ -263,7 +263,7 @@ export default function YearlyReport({
                     label="Lowest month"
                     value={lowestMonth.label}
                     sub={formatAmount(lowestMonth.total, currency)}
-                    accent="text-emerald-600"
+                    accent="text-emerald-600 dark:text-emerald-400"
                   />
                 )}
                 {data.biggestExpense && (
@@ -271,7 +271,7 @@ export default function YearlyReport({
                     label="Biggest expense"
                     value={formatAmount(data.biggestExpense.amount, currency)}
                     sub={`${data.biggestExpense.categoryName}${data.biggestExpense.note ? ` · ${data.biggestExpense.note}` : ""} · ${shortDate(data.biggestExpense.date)}`}
-                    accent="text-gray-900"
+                    accent="text-gray-900 dark:text-gray-100"
                   />
                 )}
               </div>
@@ -280,8 +280,8 @@ export default function YearlyReport({
 
           {/* Monthly trend: stacked bar chart */}
           {data.grandTotal > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 Monthly trend
               </p>
               <ResponsiveContainer width="100%" height={180}>
@@ -340,8 +340,8 @@ export default function YearlyReport({
 
           {/* Category summary */}
           {data.grandTotal > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 By category
               </p>
               <div className="space-y-3">
@@ -352,19 +352,19 @@ export default function YearlyReport({
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                         style={{ backgroundColor: cat.color }}
                       />
-                      <span className="flex-1 text-sm text-gray-700">{cat.name}</span>
-                      <span className="text-xs text-gray-400 w-8 text-right">{cat.percentage}%</span>
+                      <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">{cat.name}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 w-8 text-right">{cat.percentage}%</span>
                       <span
-                        className="text-xs text-gray-400 w-20 text-right"
+                        className="text-xs text-gray-400 dark:text-gray-500 w-20 text-right"
                         title="Average per active month"
                       >
                         avg {formatAmount(cat.monthlyAvg, currency)}/mo
                       </span>
-                      <span className="text-sm font-semibold text-gray-800 w-20 text-right">
+                      <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 w-20 text-right">
                         {formatAmount(cat.total, currency)}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden ml-4">
+                    <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden ml-4">
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${cat.percentage}%`, backgroundColor: cat.color }}
@@ -378,28 +378,28 @@ export default function YearlyReport({
 
           {/* ── Major Transactions ────────────────────────────────────────── */}
           {hasTx && tx && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 Major transactions
               </p>
 
               {/* 3 summary cards */}
               <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="bg-emerald-50 rounded-xl px-3 py-2.5 text-center">
-                  <p className="text-xs text-emerald-600 font-medium mb-0.5">Received</p>
-                  <p className="text-sm font-bold text-emerald-700">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-xl px-3 py-2.5 text-center">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-0.5">Received</p>
+                  <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
                     {formatAmount(tx.totalReceived, currency)}
                   </p>
                 </div>
-                <div className="bg-violet-50 rounded-xl px-3 py-2.5 text-center">
-                  <p className="text-xs text-violet-600 font-medium mb-0.5">Invested</p>
-                  <p className="text-sm font-bold text-violet-700">
+                <div className="bg-violet-50 dark:bg-violet-500/10 rounded-xl px-3 py-2.5 text-center">
+                  <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mb-0.5">Invested</p>
+                  <p className="text-sm font-bold text-violet-700 dark:text-violet-300">
                     {formatAmount(tx.totalInvested, currency)}
                   </p>
                 </div>
-                <div className="bg-red-50 rounded-xl px-3 py-2.5 text-center">
-                  <p className="text-xs text-red-500 font-medium mb-0.5">Debited</p>
-                  <p className="text-sm font-bold text-red-600">
+                <div className="bg-red-50 dark:bg-red-500/10 rounded-xl px-3 py-2.5 text-center">
+                  <p className="text-xs text-red-500 dark:text-red-400 font-medium mb-0.5">Debited</p>
+                  <p className="text-sm font-bold text-red-600 dark:text-red-400">
                     {formatAmount(tx.totalSpent, currency)}
                   </p>
                 </div>
@@ -407,10 +407,10 @@ export default function YearlyReport({
 
               {/* Net movement */}
               <div className="flex items-center justify-between px-1 mb-4">
-                <span className="text-xs text-gray-400">Net movement (received − debits)</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">Net movement (received − debits)</span>
                 <span
                   className={`text-sm font-bold ${
-                    txNetMovement >= 0 ? "text-emerald-600" : "text-red-500"
+                    txNetMovement >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
                   }`}
                 >
                   {txNetMovement >= 0 ? "+" : ""}
@@ -423,24 +423,24 @@ export default function YearlyReport({
                 <div className="overflow-x-auto -mx-1">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 px-2 font-medium text-gray-500">Month</th>
-                        <th className="text-right py-2 px-2 font-medium text-emerald-600">Received</th>
-                        <th className="text-right py-2 px-2 font-medium text-violet-600">Invested</th>
-                        <th className="text-right py-2 px-2 font-medium text-red-500">Debited</th>
+                      <tr className="border-b border-gray-100 dark:border-gray-800">
+                        <th className="text-left py-2 px-2 font-medium text-gray-500 dark:text-gray-400">Month</th>
+                        <th className="text-right py-2 px-2 font-medium text-emerald-600 dark:text-emerald-400">Received</th>
+                        <th className="text-right py-2 px-2 font-medium text-violet-600 dark:text-violet-400">Invested</th>
+                        <th className="text-right py-2 px-2 font-medium text-red-500 dark:text-red-400">Debited</th>
                       </tr>
                     </thead>
                     <tbody>
                       {activeTxMonths.map((m) => (
-                        <tr key={m.month} className="border-b border-gray-50 hover:bg-gray-50">
-                          <td className="py-2 px-2 font-medium text-gray-700">{m.label}</td>
-                          <td className="text-right py-2 px-2 text-emerald-600">
+                        <tr key={m.month} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <td className="py-2 px-2 font-medium text-gray-700 dark:text-gray-300">{m.label}</td>
+                          <td className="text-right py-2 px-2 text-emerald-600 dark:text-emerald-400">
                             {m.received > 0 ? formatAmount(m.received, currency) : "—"}
                           </td>
-                          <td className="text-right py-2 px-2 text-violet-600">
+                          <td className="text-right py-2 px-2 text-violet-600 dark:text-violet-400">
                             {m.invested > 0 ? formatAmount(m.invested, currency) : "—"}
                           </td>
-                          <td className="text-right py-2 px-2 text-red-500">
+                          <td className="text-right py-2 px-2 text-red-500 dark:text-red-400">
                             {m.spent > 0 ? formatAmount(m.spent, currency) : "—"}
                           </td>
                         </tr>
@@ -454,15 +454,15 @@ export default function YearlyReport({
 
           {/* Month-by-month expense table */}
           {data.grandTotal > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 Month breakdown
               </p>
               <div className="overflow-x-auto -mx-1">
                 <table className="w-full text-xs min-w-max">
                   <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left py-2 px-2 font-medium text-gray-500 sticky left-0 bg-white">
+                    <tr className="border-b border-gray-100 dark:border-gray-800">
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 dark:text-gray-400 sticky left-0 bg-white dark:bg-gray-900">
                         Month
                       </th>
                       {data.categories.map((cat) => (
@@ -474,7 +474,7 @@ export default function YearlyReport({
                           {cat.name}
                         </th>
                       ))}
-                      <th className="text-right py-2 px-2 font-semibold text-gray-700">Total</th>
+                      <th className="text-right py-2 px-2 font-semibold text-gray-700 dark:text-gray-300">Total</th>
                       <th className="w-6" />
                     </tr>
                   </thead>
@@ -487,17 +487,17 @@ export default function YearlyReport({
                         return (
                           <tr
                             key={m.month}
-                            className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                            className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <td className="py-2 px-2 font-medium text-gray-700 sticky left-0 bg-white">
+                            <td className="py-2 px-2 font-medium text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-gray-900">
                               {m.label}
                             </td>
                             {allCatIds.map((id) => (
-                              <td key={id} className="text-right py-2 px-2 text-gray-600">
+                              <td key={id} className="text-right py-2 px-2 text-gray-600 dark:text-gray-400">
                                 {catLookup.has(id) ? formatAmount(catLookup.get(id)!, currency) : "—"}
                               </td>
                             ))}
-                            <td className="text-right py-2 px-2 font-semibold text-gray-800">
+                            <td className="text-right py-2 px-2 font-semibold text-gray-800 dark:text-gray-100">
                               {formatAmount(m.total, currency)}
                             </td>
                             <td className="py-2 px-1 text-center">
@@ -505,7 +505,7 @@ export default function YearlyReport({
                                 href={`/api/expenses/export?month=${monthStr}`}
                                 download
                                 title={`Download ${m.label} CSV`}
-                                className="text-gray-300 hover:text-violet-500 transition-colors inline-flex"
+                                className="text-gray-300 dark:text-gray-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors inline-flex"
                               >
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -519,8 +519,8 @@ export default function YearlyReport({
                       })}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-gray-200">
-                      <td className="py-2 px-2 font-bold text-gray-700 sticky left-0 bg-white">Total</td>
+                    <tr className="border-t-2 border-gray-200 dark:border-gray-700">
+                      <td className="py-2 px-2 font-bold text-gray-700 dark:text-gray-300 sticky left-0 bg-white dark:bg-gray-900">Total</td>
                       {data.categories.map((cat) => (
                         <td
                           key={cat.categoryId}
@@ -530,7 +530,7 @@ export default function YearlyReport({
                           {formatAmount(cat.total, currency)}
                         </td>
                       ))}
-                      <td className="text-right py-2 px-2 font-bold text-gray-900">
+                      <td className="text-right py-2 px-2 font-bold text-gray-900 dark:text-gray-100">
                         {formatAmount(data.grandTotal, currency)}
                       </td>
                       <td />

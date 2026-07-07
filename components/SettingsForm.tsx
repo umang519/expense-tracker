@@ -6,6 +6,7 @@ import PasswordInput from "./PasswordInput";
 import NotificationToggle from "./NotificationToggle";
 import SignOutModal from "./SignOutModal";
 import DeleteAccountModal from "./DeleteAccountModal";
+import ThemeToggle from "./ThemeToggle";
 
 const CURRENCIES = [
   { code: "INR", label: "₹ Indian Rupee" },
@@ -196,25 +197,25 @@ export default function SettingsForm({ user }: { user: User }) {
   return (
     <div className="space-y-4">
       {/* Profile */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Profile
         </h2>
 
         {/* Avatar + email */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-lg flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold text-lg flex-shrink-0">
             {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">{user.name || "—"}</p>
-            <p className="text-xs text-gray-400">{user.email}</p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{user.name || "—"}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{user.email}</p>
           </div>
         </div>
 
         <form onSubmit={saveProfile} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Display name
             </label>
             <input
@@ -223,7 +224,7 @@ export default function SettingsForm({ user }: { user: User }) {
               onChange={(e) => setName(e.target.value)}
               maxLength={100}
               placeholder="Your name"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
           <StatusButton status={profileStatus} label="Save name" />
@@ -231,19 +232,19 @@ export default function SettingsForm({ user }: { user: User }) {
       </section>
 
       {/* Currency */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Preferences
         </h2>
         <form onSubmit={saveCurrency} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Currency
             </label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-900"
             >
               {CURRENCIES.map(({ code, label }) => (
                 <option key={code} value={code}>
@@ -251,22 +252,29 @@ export default function SettingsForm({ user }: { user: User }) {
                 </option>
               ))}
             </select>
-            <p className="text-xs text-gray-400 mt-1.5">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
               Changes only the symbol shown — amounts are not converted between currencies.
             </p>
           </div>
           <StatusButton status={currencyStatus} label="Save currency" />
         </form>
+
+        <div className="mt-5 pt-5 border-t border-gray-100 dark:border-gray-800">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+            Appearance
+          </label>
+          <ThemeToggle />
+        </div>
       </section>
 
       {/* Security */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Security
         </h2>
         <form onSubmit={changePassword} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Current password
             </label>
             <PasswordInput
@@ -274,15 +282,15 @@ export default function SettingsForm({ user }: { user: User }) {
               value={currentPw}
               onChange={(e) => { setCurrentPw(e.target.value); clearPwFieldError("current"); }}
               autoComplete="current-password"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="••••••••"
             />
             {pwFieldErrors.current && (
-              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.current}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">{pwFieldErrors.current}</p>
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               New password
             </label>
             <PasswordInput
@@ -290,15 +298,15 @@ export default function SettingsForm({ user }: { user: User }) {
               value={newPw}
               onChange={(e) => { setNewPw(e.target.value); clearPwFieldError("new"); }}
               autoComplete="new-password"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="Min 8 characters"
             />
             {pwFieldErrors.new && (
-              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.new}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">{pwFieldErrors.new}</p>
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Confirm new password
             </label>
             <PasswordInput
@@ -306,11 +314,11 @@ export default function SettingsForm({ user }: { user: User }) {
               value={confirmPw}
               onChange={(e) => { setConfirmPw(e.target.value); clearPwFieldError("confirm"); }}
               autoComplete="new-password"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               placeholder="••••••••"
             />
             {pwFieldErrors.confirm && (
-              <p className="text-xs text-red-600 mt-1">{pwFieldErrors.confirm}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">{pwFieldErrors.confirm}</p>
             )}
           </div>
           <StatusButton status={pwStatus} label="Change password" />
@@ -318,19 +326,19 @@ export default function SettingsForm({ user }: { user: User }) {
       </section>
 
       {/* Update email */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Update Email
         </h2>
 
-        <p className="text-xs text-gray-400 mb-4">
-          Current: <span className="text-gray-600 font-medium">{user.email}</span>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          Current: <span className="text-gray-600 dark:text-gray-400 font-medium">{user.email}</span>
         </p>
 
         {emailStep === "idle" && (
           <button
             onClick={() => { setEmailStep("form"); setEmailStatus("idle"); }}
-            className="w-full py-2.5 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 text-sm font-medium transition-colors"
+            className="w-full py-2.5 rounded-xl border border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 text-sm font-medium transition-colors"
           >
             Change email address
           </button>
@@ -339,24 +347,24 @@ export default function SettingsForm({ user }: { user: User }) {
         {emailStep === "form" && (
           <form onSubmit={requestEmailChange} className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">New email address</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">New email address</label>
               <input
                 type="email"
                 required
                 value={newEmail}
                 onChange={(e) => { setNewEmail(e.target.value); setEmailStatus("idle"); }}
                 placeholder="you@example.com"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               />
             </div>
             {typeof emailStatus === "string" && emailStatus !== "idle" && emailStatus !== "sending" && (
-              <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{emailStatus}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-1.5">{emailStatus}</p>
             )}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => { setEmailStep("idle"); setNewEmail(""); setEmailStatus("idle"); }}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Cancel
               </button>
@@ -373,8 +381,8 @@ export default function SettingsForm({ user }: { user: User }) {
 
         {emailStep === "otp" && (
           <form onSubmit={confirmEmailChange} className="space-y-3">
-            <p className="text-xs text-gray-500">
-              We sent a 6-digit code to <span className="font-medium text-gray-700">{newEmail}</span>. Enter it below.
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              We sent a 6-digit code to <span className="font-medium text-gray-700 dark:text-gray-300">{newEmail}</span>. Enter it below.
             </p>
             <input
               type="text"
@@ -384,16 +392,16 @@ export default function SettingsForm({ user }: { user: User }) {
               value={emailOtp}
               onChange={(e) => { setEmailOtp(e.target.value.replace(/\D/g, "")); setEmailStatus("idle"); }}
               placeholder="000000"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 text-center tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 text-center tracking-widest font-mono focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
             {typeof emailStatus === "string" && emailStatus !== "idle" && emailStatus !== "verifying" && (
-              <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{emailStatus}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-1.5">{emailStatus}</p>
             )}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => { setEmailStep("form"); setEmailOtp(""); setEmailStatus("idle"); }}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Back
               </button>
@@ -413,13 +421,13 @@ export default function SettingsForm({ user }: { user: User }) {
       <NotificationToggle />
 
       {/* Quick links */}
-      <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
         <a
           href="/recurring"
-          className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+          className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500 flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-500 dark:text-violet-400 flex-shrink-0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 2.1l4 4-4 4" />
                 <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4" />
@@ -427,28 +435,28 @@ export default function SettingsForm({ user }: { user: User }) {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Recurring Expenses</p>
-              <p className="text-xs text-gray-400">Auto-log rent, SIPs &amp; subscriptions</p>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recurring Expenses</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Auto-log rent, SIPs &amp; subscriptions</p>
             </div>
           </div>
-          <span className="text-gray-300 text-lg">›</span>
+          <span className="text-gray-300 dark:text-gray-600 text-lg">›</span>
         </a>
       </section>
 
       {/* Sign out */}
-      <section className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Account
         </h2>
         <button
           onClick={() => setSignOutOpen(true)}
-          className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
+          className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors"
         >
           Sign out
         </button>
         <button
           onClick={() => setDeleteAccountOpen(true)}
-          className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors mt-2"
+          className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors mt-2"
         >
           Delete account
         </button>
@@ -473,10 +481,10 @@ function StatusButton({
   return (
     <div className="space-y-1.5">
       {isError && (
-        <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{status}</p>
+        <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-1.5">{status}</p>
       )}
       {status === "saved" && (
-        <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-3 py-1.5">
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-1.5">
           Saved successfully
         </p>
       )}

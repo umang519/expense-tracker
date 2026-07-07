@@ -10,7 +10,7 @@ export default function LogoutButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-sm border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 font-medium px-3 py-1.5 rounded-lg transition-colors"
+        className="text-sm border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-red-300 dark:hover:border-red-700 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-medium px-3 py-1.5 rounded-lg transition-colors"
       >
         Sign out
       </button>

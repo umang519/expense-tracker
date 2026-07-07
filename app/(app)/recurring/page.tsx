@@ -15,11 +15,11 @@ export default async function RecurringPage() {
   const user = await User.findById(payload.sub).select("currency").lean();
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       <div className="max-w-lg mx-auto">
         <div className="py-4 mb-3">
-          <h1 className="text-xl font-bold text-gray-900">Recurring</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Recurring</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Auto-logged on schedule — rent, SIPs, subscriptions
           </p>
         </div>

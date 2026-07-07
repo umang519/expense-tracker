@@ -30,21 +30,21 @@ export default async function MonthPage({ params }: Props) {
   const isFuture = month > now;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       <div className="max-w-lg mx-auto">
         {/* Month navigation header */}
         <div className="flex items-center justify-between py-4 mb-3">
           <Link
             href={`/month/${prev}`}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50"
+            className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/10"
           >
             ← Prev
           </Link>
 
           <div className="text-center">
-            <h1 className="text-base font-bold text-gray-900">{monthLabel(month)}</h1>
+            <h1 className="text-base font-bold text-gray-900 dark:text-gray-100">{monthLabel(month)}</h1>
             {month === now && (
-              <span className="text-xs text-violet-500 font-medium">This month</span>
+              <span className="text-xs text-violet-500 dark:text-violet-400 font-medium">This month</span>
             )}
           </div>
 
@@ -53,8 +53,8 @@ export default async function MonthPage({ params }: Props) {
             aria-disabled={isFuture}
             className={`flex items-center gap-1 text-sm transition-colors px-2 py-1 rounded-lg ${
               isFuture
-                ? "text-gray-300 cursor-default"
-                : "text-gray-500 hover:text-violet-600 hover:bg-violet-50"
+                ? "text-gray-300 dark:text-gray-600 cursor-default"
+                : "text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10"
             }`}
           >
             Next →

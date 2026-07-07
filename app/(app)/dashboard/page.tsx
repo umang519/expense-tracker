@@ -24,17 +24,17 @@ export default async function DashboardPage() {
   const currency = user.currency ?? "INR";
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between py-4 mb-3">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {user.name ? `Hi, ${user.name}` : "Dashboard"}
             </h1>
             <Link
               href={`/month/${month}`}
-              className="text-sm text-violet-500 hover:underline"
+              className="text-sm text-violet-500 dark:text-violet-400 hover:underline"
             >
               {monthLabel(month)} →
             </Link>

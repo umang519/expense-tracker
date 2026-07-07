@@ -94,7 +94,7 @@ export default function TransactionsPage() {
   const years = Object.keys(groups).sort((a, b) => b.localeCompare(a));
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       {/* Backdrop to close open menu on outside tap */}
       {activeMenuId && (
         <div
@@ -110,8 +110,8 @@ export default function TransactionsPage() {
         {/* Header */}
         <div className="flex items-center justify-between py-4 mb-3">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Transactions</h1>
-            <p className="text-sm text-gray-500">Major one-off entries</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Transactions</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Major one-off entries</p>
           </div>
           <button
             onClick={() => setSheetMode("add")}
@@ -122,29 +122,29 @@ export default function TransactionsPage() {
         </div>
 
         {deleteError && (
-          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
-            <p className="text-sm text-red-600">{deleteError}</p>
-            <button onClick={() => setDeleteError("")} className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0">✕</button>
+          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-900/50 rounded-xl px-4 py-2.5">
+            <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>
+            <button onClick={() => setDeleteError("")} className="text-red-400 hover:text-red-600 dark:hover:text-red-400 text-lg leading-none flex-shrink-0">✕</button>
           </div>
         )}
 
         {/* Summary card */}
         {transactions.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 grid grid-cols-3 gap-3">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 mb-4 grid grid-cols-3 gap-3">
             <div className="text-center">
-              <p className="text-xs text-gray-400 mb-0.5">Spent</p>
-              <p className="text-sm font-bold text-red-500">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Spent</p>
+              <p className="text-sm font-bold text-red-500 dark:text-red-400">
                 {formatAmount(totalSpent)}
               </p>
             </div>
-            <div className="text-center border-x border-gray-100">
-              <p className="text-xs text-gray-400 mb-0.5">Invested</p>
-              <p className="text-sm font-bold text-violet-500">
+            <div className="text-center border-x border-gray-100 dark:border-gray-800">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Invested</p>
+              <p className="text-sm font-bold text-violet-500 dark:text-violet-400">
                 {formatAmount(totalInvested)}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-400 mb-0.5">Received</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Received</p>
               <p className="text-sm font-bold text-emerald-500">
                 {formatAmount(totalReceived)}
               </p>
@@ -156,21 +156,21 @@ export default function TransactionsPage() {
         {isLoading && (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+              <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
             ))}
           </div>
         )}
 
         {/* Error */}
         {isError && (
-          <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
-            <p className="text-sm text-red-500">Could not load transactions. Try refreshing.</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/50 p-8 text-center">
+            <p className="text-sm text-red-500 dark:text-red-400">Could not load transactions. Try refreshing.</p>
           </div>
         )}
 
         {/* Empty */}
         {!isLoading && !isError && transactions.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
             No transactions yet. Tap + Add to record one.
           </div>
         )}
@@ -185,10 +185,10 @@ export default function TransactionsPage() {
           return (
             <div key={year} className="mb-6">
               <div className="flex items-center justify-between px-1 mb-2">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                   {year}
                 </span>
-                {/* <span className="text-xs text-gray-400">
+                {/* <span className="text-xs text-gray-400 dark:text-gray-500">
                   Spent {formatAmount(yearSpent)} · Invested {formatAmount(yearInvested)} · Received {formatAmount(yearReceived)}
                 </span> */}
               </div>
@@ -196,15 +196,15 @@ export default function TransactionsPage() {
               <ul className="space-y-2">
                 {yearTxs.map((tx) => {
                   const colorClasses = tx.isInvestment
-                    ? { badge: "bg-violet-50 text-violet-500", amount: "text-violet-500" }
+                    ? { badge: "bg-violet-50 dark:bg-violet-500/10 text-violet-500 dark:text-violet-400", amount: "text-violet-500 dark:text-violet-400" }
                     : tx.type === "Dr"
-                    ? { badge: "bg-red-50 text-red-500", amount: "text-red-500" }
-                    : { badge: "bg-emerald-50 text-emerald-600", amount: "text-emerald-600" };
+                    ? { badge: "bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400", amount: "text-red-500 dark:text-red-400" }
+                    : { badge: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", amount: "text-emerald-600 dark:text-emerald-400" };
 
                   return (
                   <li
                     key={tx._id}
-                    className="bg-white rounded-xl border border-gray-100 flex items-center gap-3 px-4 py-3"
+                    className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 px-4 py-3"
                   >
                     {/* Type badge */}
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 ${colorClasses.badge}`}>
@@ -214,16 +214,16 @@ export default function TransactionsPage() {
                     {/* Description + dates */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-medium text-gray-800 truncate">
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
                           {tx.description}
                         </p>
                         {tx.isInvestment && (
-                          <span className="text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded flex-shrink-0">
+                          <span className="text-[10px] font-medium text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
                             Invested
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">{formatTxDate(tx.date)}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{formatTxDate(tx.date)}</p>
                     </div>
 
                     {/* Amount */}
@@ -245,7 +245,7 @@ export default function TransactionsPage() {
                             setConfirmDeleteId(null);
                           }
                         }}
-                        className="text-gray-300 hover:text-gray-500 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 text-lg leading-none"
+                        className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-lg leading-none"
                         aria-label="More options"
                         title="More options"
                       >
@@ -254,12 +254,12 @@ export default function TransactionsPage() {
 
                       {activeMenuId === tx._id && (
                         <div
-                          className="absolute right-0 top-8 bg-white rounded-xl border border-gray-100 shadow-lg z-10 min-w-[160px] py-1"
+                          className="absolute right-0 top-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-lg z-10 min-w-[160px] py-1"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {confirmDeleteId === tx._id ? (
                             <div className="px-3 py-2.5">
-                              <p className="text-xs font-medium text-gray-700 mb-2.5">
+                              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2.5">
                                 Delete this transaction?
                               </p>
                               <div className="flex gap-2">
@@ -278,7 +278,7 @@ export default function TransactionsPage() {
                                     setConfirmDeleteId(null);
                                     setActiveMenuId(null);
                                   }}
-                                  className="flex-1 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50"
+                                  className="flex-1 py-1.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                                 >
                                   Cancel
                                 </button>
@@ -291,14 +291,14 @@ export default function TransactionsPage() {
                                   setSheetMode(tx);
                                   setActiveMenuId(null);
                                 }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5"
+                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2.5"
                               >
                                 <span className="text-base leading-none">✎</span>
                                 Edit
                               </button>
                               <button
                                 onClick={() => setConfirmDeleteId(tx._id)}
-                                className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2.5"
+                                className="w-full text-left px-4 py-2.5 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2.5"
                               >
                                 <span className="text-base leading-none">✕</span>
                                 Delete
@@ -399,16 +399,16 @@ function TransactionSheet({
       onClick={onClose}
     >
       <div
-        className="w-full bg-white rounded-t-2xl p-5 pb-8 max-w-lg mx-auto"
+        className="w-full bg-white dark:bg-gray-900 rounded-t-2xl p-5 pb-8 max-w-lg mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {initial ? "Edit Transaction" : "Add Transaction"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none p-1"
             aria-label="Close"
           >
             ✕
@@ -418,7 +418,7 @@ function TransactionSheet({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Dr / Cr toggle */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-2">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
               Type
             </label>
             <div className="flex gap-2">
@@ -427,8 +427,8 @@ function TransactionSheet({
                 onClick={() => setType("Dr")}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   type === "Dr"
-                    ? "border-red-400 bg-red-50 text-red-500"
-                    : "border-gray-200 text-gray-400 hover:border-gray-300"
+                    ? "border-red-400 bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400"
+                    : "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600"
                 }`}
               >
                 Dr — Debit
@@ -441,8 +441,8 @@ function TransactionSheet({
                 }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   type === "Cr"
-                    ? "border-emerald-400 bg-emerald-50 text-emerald-600"
-                    : "border-gray-200 text-gray-400 hover:border-gray-300"
+                    ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600"
                 }`}
               >
                 Cr — Credit
@@ -452,14 +452,14 @@ function TransactionSheet({
 
           {/* Investment toggle — only meaningful for outflows */}
           {type === "Dr" && (
-            <label className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-gray-200 cursor-pointer select-none">
+            <label className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isInvestment}
                 onChange={(e) => setIsInvestment(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 dark:text-violet-400 focus:ring-violet-500"
               />
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 This is an investment (FD, mutual fund, liquid fund, etc.) — money parked, not spent
               </span>
             </label>
@@ -467,7 +467,7 @@ function TransactionSheet({
 
           {/* Amount */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Amount (₹)
             </label>
             <input
@@ -480,13 +480,13 @@ function TransactionSheet({
               onChange={(e) => setAmount(e.target.value)}
               autoFocus={!initial}
               placeholder="0"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-2xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-2xl font-bold text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Description
             </label>
             <input
@@ -496,13 +496,13 @@ function TransactionSheet({
               onChange={(e) => setDescription(e.target.value)}
               maxLength={200}
               placeholder="e.g. FD created for 444 days"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
 
           {/* Date */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
               Date
             </label>
             <input
@@ -510,12 +510,12 @@ function TransactionSheet({
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-2">
               {error}
             </p>
           )}

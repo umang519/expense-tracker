@@ -282,17 +282,17 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={onClose}>
       <div
-        className="w-full bg-white rounded-t-2xl max-h-[92vh] overflow-y-auto max-w-lg mx-auto"
+        className="w-full bg-white dark:bg-gray-900 rounded-t-2xl max-h-[92vh] overflow-y-auto max-w-lg mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-2">
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {isEdit ? "Edit Expense" : "Add Expense"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none p-1"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none p-1"
             aria-label="Close"
           >
             ✕
@@ -302,18 +302,18 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
         {/* Quick-fill chips */}
         {!isEdit && quickFills.length > 0 && (
           <div className="px-5 pb-3">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-2">Repeat recent</p>
+            <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Repeat recent</p>
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               {quickFills.map((exp) => (
                 <button
                   key={exp._id}
                   type="button"
                   onClick={() => applyQuickFill(exp)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-xs text-gray-700 hover:border-violet-300 hover:bg-violet-50 active:bg-violet-100 transition-colors select-none"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-500/10 active:bg-violet-100 transition-colors select-none"
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: exp.categoryId.color }} />
                   <span className="font-semibold">₹{exp.amount}</span>
-                  <span className="text-gray-400">{exp.categoryId.name}{exp.note ? ` · ${exp.note}` : ""}</span>
+                  <span className="text-gray-400 dark:text-gray-500">{exp.categoryId.name}{exp.note ? ` · ${exp.note}` : ""}</span>
                 </button>
               ))}
             </div>
@@ -322,14 +322,14 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
 
         {/* Amount display */}
         <div className="px-5 pb-3 text-center">
-          <div className={`text-4xl font-bold tracking-tight transition-colors ${amount ? "text-gray-900" : "text-gray-300"}`}>
+          <div className={`text-4xl font-bold tracking-tight transition-colors ${amount ? "text-gray-900 dark:text-gray-100" : "text-gray-300 dark:text-gray-600"}`}>
             ₹{amount || "0"}
           </div>
         </div>
 
         {/* Category */}
         <div className="px-5 pb-3">
-          <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-2">Category</p>
+          <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Category</p>
           <div className="flex flex-wrap gap-2">
             {sortedCategories.map((cat) => (
               <button
@@ -339,7 +339,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors select-none ${
                   categoryId === cat._id
                     ? "border-transparent text-white font-medium"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600"
                 }`}
                 style={categoryId === cat._id ? { backgroundColor: cat.color } : {}}
               >
@@ -353,16 +353,16 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
         {/* Date + Note side by side */}
         <div className="px-5 pb-3 flex gap-3">
           <div className="flex-1">
-            <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">Date</label>
+            <label className="block text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
           <div className="flex-1">
-            <label className="block text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-1">
+            <label className="block text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1">
               Note <span className="normal-case font-normal">(optional)</span>
             </label>
             <input
@@ -371,22 +371,22 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
               onChange={(e) => setNote(e.target.value)}
               maxLength={200}
               placeholder="e.g. lunch…"
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
         </div>
 
         {error && (
           <div className="px-5 pb-2">
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-2">{error}</p>
           </div>
         )}
 
         {/* Merge prompt */}
         {mergeCandidate && (
           <div className="px-5 pb-3">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <p className="text-sm font-medium text-amber-800 mb-2.5">
+            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2.5">
                 ₹{mergeCandidate.amount} {mergeCandidate.categoryId.name} already logged on this date
               </p>
               <div className="flex gap-2">
@@ -414,7 +414,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
                     keepOpenRef.current = false;
                     addMutation.mutate({ date, categoryId, amount: parseFloat(amount), note: note.trim() });
                   }}
-                  className="flex-1 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="flex-1 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                   Keep separate
                 </button>
@@ -424,15 +424,15 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
         )}
 
         {/* Numeric keypad */}
-        <div className="grid grid-cols-3 border-t border-gray-100">
+        <div className="grid grid-cols-3 border-t border-gray-100 dark:border-gray-800">
           {KEYS.map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => handleKey(key)}
               className={`py-2.5 text-lg font-medium transition-colors select-none active:bg-gray-100
-                ${key === "⌫" ? "text-gray-400 hover:text-gray-600" : "text-gray-800 hover:bg-gray-50"}
-                border-b border-r border-gray-100 last:border-r-0
+                ${key === "⌫" ? "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" : "text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800"}
+                border-b border-r border-gray-100 dark:border-gray-800 last:border-r-0
               `}
             >
               {key}
@@ -447,7 +447,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
               type="button"
               onClick={() => handleSave(true)}
               disabled={isPending}
-              className="w-full py-3 rounded-xl border-2 border-violet-200 text-violet-600 hover:bg-violet-50 text-sm font-medium transition-colors disabled:opacity-50"
+              className="w-full py-3 rounded-xl border-2 border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 text-sm font-medium transition-colors disabled:opacity-50"
             >
               Save &amp; add another
             </button>

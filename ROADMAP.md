@@ -283,11 +283,22 @@ app, account-level controls (delete, security) matter more than before. Priority
   `/login`. Must follow rule 1 — everything scoped by the verified JWT's `userId`, nothing from
   the request body.
 
-**c) Theme (Light / Dark / System)**
-- Add under Preferences, alongside Currency.
-- Tailwind `dark:` classes + a stored preference (User field or localStorage — decide based on
-  whether it should sync across devices; localStorage is simpler and sufficient for a personal
-  app). Respect `prefers-color-scheme` for "System".
+**c) Theme (Light / Dark / System) ✅ COMPLETE**
+- Tailwind v4 class-based `dark:` variant enabled (`@custom-variant dark` in `globals.css`),
+  driven by a `.dark` class on `<html>` rather than the default media-query strategy, so a
+  manual override can coexist with "System".
+- `lib/theme.ts`: reads/writes the preference (`system` | `light` | `dark`) to `localStorage`
+  (device-local, not synced — sufficient for a personal app). A blocking inline script in
+  `app/layout.tsx` applies the class before first paint to avoid a light-mode flash.
+- `components/ThemeToggle.tsx`: three-way control in Settings → Preferences, below Currency.
+  Uses `useSyncExternalStore` (not local state + effect) so it stays consistent with the
+  localStorage value across tabs without triggering React's setState-in-effect lint rule.
+  Live-updates when in "System" mode and the OS preference changes while the app is open.
+- `dark:` variants applied across all pages/components (mechanical light→dark color-token
+  mapping, e.g. `bg-white` → `+ dark:bg-gray-900`, `text-gray-900` → `+ dark:text-gray-100`).
+  Verified via `tsc`, `eslint`, and server-rendered HTML inspection; **not** pixel-checked in an
+  actual browser since no browser automation tool is available in this environment — worth a
+  quick manual look before/after deploying.
 
 **d) About section**
 - Small static card: app version, link to GitHub repo, privacy/contact info if applicable.
