@@ -165,10 +165,10 @@ export default function CategoriesPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-gray-50 p-4">
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
         <div className="max-w-lg mx-auto space-y-2 pt-20">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-12 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
           ))}
         </div>
       </main>
@@ -177,10 +177,10 @@ export default function CategoriesPage() {
 
   if (isError) {
     return (
-      <main className="min-h-screen bg-gray-50 p-4">
+      <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
         <div className="max-w-lg mx-auto pt-20">
-          <div className="bg-white rounded-2xl border border-red-100 p-8 text-center">
-            <p className="text-sm text-red-500">Could not load categories. Try refreshing.</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/50 p-8 text-center">
+            <p className="text-sm text-red-500 dark:text-red-400">Could not load categories. Try refreshing.</p>
           </div>
         </div>
       </main>
@@ -188,11 +188,11 @@ export default function CategoriesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between py-4 mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Categories</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Categories</h1>
           {!showAddForm && (
             <button
               onClick={() => { setShowAddForm(true); setEditingId(null); }}
@@ -204,9 +204,9 @@ export default function CategoriesPage() {
         </div>
 
         {mutationError && (
-          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
-            <p className="text-sm text-red-600">{mutationError}</p>
-            <button onClick={() => setMutationError("")} className="text-red-400 hover:text-red-600 text-lg leading-none flex-shrink-0">✕</button>
+          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-900/50 rounded-xl px-4 py-2.5">
+            <p className="text-sm text-red-600 dark:text-red-400">{mutationError}</p>
+            <button onClick={() => setMutationError("")} className="text-red-400 hover:text-red-600 dark:hover:text-red-400 text-lg leading-none flex-shrink-0">✕</button>
           </div>
         )}
 
@@ -222,7 +222,7 @@ export default function CategoriesPage() {
 
         {/* Active categories */}
         {active.length === 0 && !showAddForm ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
             No categories yet. Add one above.
           </div>
         ) : (
@@ -239,31 +239,31 @@ export default function CategoriesPage() {
                   />
                 </li>
               ) : (
-                <li key={cat._id} className="bg-white rounded-xl border border-gray-100">
+                <li key={cat._id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800">
                   <div className="flex items-center gap-3 px-4 py-3">
                     <span
                       className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="flex-1 text-sm font-medium text-gray-800">
+                    <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-100">
                       {cat.name}
                     </span>
 
                     {archiveConfirmId === cat._id ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">Archive?</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Archive?</span>
                         <button
                           onClick={() => {
                             archiveMutation.mutate({ id: cat._id, archive: true });
                             setArchiveConfirmId(null);
                           }}
-                          className="text-xs text-red-500 font-medium px-2 py-1 rounded border border-red-200 hover:bg-red-50"
+                          className="text-xs text-red-500 dark:text-red-400 font-medium px-2 py-1 rounded border border-red-200 dark:border-red-800/60 hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setArchiveConfirmId(null)}
-                          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded"
+                          className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 rounded"
                         >
                           Cancel
                         </button>
@@ -276,7 +276,7 @@ export default function CategoriesPage() {
                             onClick={() => setEditingBudgetId(
                               editingBudgetId === cat._id ? "" : cat._id
                             )}
-                            className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 font-medium hover:bg-violet-100 transition-colors"
+                            className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-medium hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors"
                           >
                             {formatAmount(budgetMap.get(cat._id)!.amount, "INR")}
                           </button>
@@ -285,7 +285,7 @@ export default function CategoriesPage() {
                             onClick={() => setEditingBudgetId(
                               editingBudgetId === cat._id ? "" : cat._id
                             )}
-                            className="text-xs text-gray-300 hover:text-violet-500 transition-colors px-1"
+                            className="text-xs text-gray-300 dark:text-gray-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors px-1"
                             title="Set budget"
                           >
                             + budget
@@ -298,7 +298,7 @@ export default function CategoriesPage() {
                             setArchiveConfirmId(null);
                             setEditingBudgetId("");
                           }}
-                          className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded"
                           aria-label="Edit category"
                         >
                           ✎
@@ -306,7 +306,7 @@ export default function CategoriesPage() {
                         <button
                           onClick={() => setArchiveConfirmId(cat._id)}
                           disabled={archiveMutation.isPending}
-                          className="text-gray-400 hover:text-red-500 p-1 rounded disabled:opacity-50"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1 rounded disabled:opacity-50"
                           aria-label="Archive category"
                         >
                           ⊖
@@ -340,22 +340,22 @@ export default function CategoriesPage() {
         {/* ── Monthly Budgets summary ──────────────────────────────────────── */}
         <div className="mt-8">
           <div className="flex items-center justify-between mb-2 px-1">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
               Monthly Budgets
             </h2>
           </div>
 
           {/* Overall budget */}
-          <div className="bg-white rounded-xl border border-gray-100 mb-2">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 mb-2">
             <div className="flex items-center gap-3 px-4 py-3">
-              <span className="w-4 h-4 rounded-full bg-violet-200 flex-shrink-0" />
-              <span className="flex-1 text-sm font-medium text-gray-700">Overall (all categories)</span>
+              <span className="w-4 h-4 rounded-full bg-violet-200 dark:bg-violet-500/30 flex-shrink-0" />
+              <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300">Overall (all categories)</span>
               {overallBudget ? (
                 <button
                   onClick={() => setEditingBudgetId(
                     editingBudgetId === "overall" ? "" : "overall"
                   )}
-                  className="text-xs px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 font-medium hover:bg-violet-100 transition-colors"
+                  className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-medium hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors"
                 >
                   {formatAmount(overallBudget.amount, "INR")}
                 </button>
@@ -364,7 +364,7 @@ export default function CategoriesPage() {
                   onClick={() => setEditingBudgetId(
                     editingBudgetId === "overall" ? "" : "overall"
                   )}
-                  className="text-xs text-gray-300 hover:text-violet-500 transition-colors px-1"
+                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-violet-500 dark:hover:text-violet-400 transition-colors px-1"
                 >
                   + budget
                 </button>
@@ -385,7 +385,7 @@ export default function CategoriesPage() {
             )}
           </div>
 
-          <p className="text-xs text-gray-400 px-1">
+          <p className="text-xs text-gray-400 dark:text-gray-500 px-1">
             Budgets repeat every month. Set per-category limits above on each category row.
           </p>
         </div>
@@ -393,24 +393,24 @@ export default function CategoriesPage() {
         {/* Archived section */}
         {archived.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
+            <h2 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
               Archived ({archived.length})
             </h2>
             <ul className="space-y-2">
               {archived.map((cat) => (
                 <li
                   key={cat._id}
-                  className="bg-white rounded-xl border border-gray-100 flex items-center gap-3 px-4 py-3 opacity-60"
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center gap-3 px-4 py-3 opacity-60"
                 >
                   <span
                     className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: cat.color }}
                   />
-                  <span className="flex-1 text-sm text-gray-500 line-through">{cat.name}</span>
+                  <span className="flex-1 text-sm text-gray-500 dark:text-gray-400 line-through">{cat.name}</span>
                   <button
                     onClick={() => archiveMutation.mutate({ id: cat._id, archive: false })}
                     disabled={archiveMutation.isPending}
-                    className="text-xs text-violet-600 hover:text-violet-700 font-medium px-2 py-1 rounded disabled:opacity-50"
+                    className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium px-2 py-1 rounded disabled:opacity-50"
                   >
                     Restore
                   </button>
@@ -451,9 +451,9 @@ function CategoryForm({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-violet-200 p-4 space-y-3 mb-2">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-violet-200 dark:border-violet-800 p-4 space-y-3 mb-2">
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Name</label>
         <input
           type="text"
           required
@@ -461,13 +461,13 @@ function CategoryForm({
           onChange={(e) => setName(e.target.value)}
           maxLength={50}
           autoFocus
-          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+          className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
           placeholder="e.g. Groceries"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-2">Color</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Color</label>
         <div className="flex flex-wrap gap-2 mb-2">
           {PRESET_COLORS.map((c) => (
             <button
@@ -483,26 +483,26 @@ function CategoryForm({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">Custom:</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">Custom:</span>
           <input
             type="color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
             className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
           />
-          <span className="text-xs text-gray-500 font-mono">{color}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">{color}</span>
         </div>
       </div>
 
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">{error}</p>
+        <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded px-2 py-1">{error}</p>
       )}
 
       <div className="flex gap-2 pt-1">
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          className="flex-1 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           Cancel
         </button>
@@ -542,11 +542,11 @@ function BudgetInlineForm({
   }
 
   return (
-    <div className="border-t border-gray-100 px-4 py-3 bg-gray-50 rounded-b-xl">
-      <p className="text-xs text-gray-500 mb-2">Monthly budget</p>
+    <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-3 bg-gray-50 dark:bg-gray-950 rounded-b-xl">
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Monthly budget</p>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">₹</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">₹</span>
           <input
             type="number"
             inputMode="decimal"
@@ -555,7 +555,7 @@ function BudgetInlineForm({
             onChange={(e) => setValue(e.target.value)}
             placeholder="e.g. 5000"
             autoFocus
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white"
+            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-900"
           />
         </div>
         <button
@@ -569,7 +569,7 @@ function BudgetInlineForm({
           <button
             onClick={onRemove}
             disabled={saving}
-            className="px-3 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-50 text-sm transition-colors"
+            className="px-3 py-2 rounded-lg border border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 text-sm transition-colors"
             title="Remove budget"
           >
             Remove
@@ -577,7 +577,7 @@ function BudgetInlineForm({
         )}
         <button
           onClick={onCancel}
-          className="px-3 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 text-sm transition-colors"
+          className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition-colors"
         >
           ✕
         </button>

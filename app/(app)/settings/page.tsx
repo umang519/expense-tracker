@@ -23,11 +23,11 @@ export default async function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
       <div className="max-w-lg mx-auto">
         <div className="py-4 mb-3">
-          <h1 className="text-xl font-bold text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-500">Manage your account</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage your account</p>
         </div>
         <SettingsForm user={userData} />
       </div>

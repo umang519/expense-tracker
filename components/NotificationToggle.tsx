@@ -86,21 +86,21 @@ export default function NotificationToggle() {
   if (status === "loading") return null;
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-100 p-5">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+    <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+      <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
         Daily Reminder
       </h2>
 
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500 flex-shrink-0 mt-0.5">
+        <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-500 dark:text-violet-400 flex-shrink-0 mt-0.5">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-800">Evening nudge</p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Evening nudge</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
             {status === "subscribed"
               ? "You'll get a reminder at 7:30 PM to log your expenses."
               : status === "denied"
@@ -115,7 +115,7 @@ export default function NotificationToggle() {
           <button
             onClick={unsubscribe}
             disabled={busy}
-            className="flex-shrink-0 text-xs text-gray-400 hover:text-red-500 border border-gray-200 hover:border-red-200 rounded-xl px-3 py-1.5 transition-colors disabled:opacity-50"
+            className="flex-shrink-0 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 border border-gray-200 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-700 rounded-xl px-3 py-1.5 transition-colors disabled:opacity-50"
           >
             {busy ? "…" : "Turn off"}
           </button>
