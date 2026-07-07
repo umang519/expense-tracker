@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import PasswordInput from "./PasswordInput";
 import NotificationToggle from "./NotificationToggle";
 import SignOutModal from "./SignOutModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 const CURRENCIES = [
   { code: "INR", label: "₹ Indian Rupee" },
@@ -188,6 +189,9 @@ export default function SettingsForm({ user }: { user: User }) {
 
   // ── Sign out modal ─────────────────────────────────────────────────────────
   const [signOutOpen, setSignOutOpen] = useState(false);
+
+  // ── Delete account modal ──────────────────────────────────────────────────
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -442,9 +446,16 @@ export default function SettingsForm({ user }: { user: User }) {
         >
           Sign out
         </button>
+        <button
+          onClick={() => setDeleteAccountOpen(true)}
+          className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors mt-2"
+        >
+          Delete account
+        </button>
       </section>
 
       <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />
+      <DeleteAccountModal isOpen={deleteAccountOpen} onClose={() => setDeleteAccountOpen(false)} />
     </div>
   );
 }

@@ -274,7 +274,7 @@ app, account-level controls (delete, security) matter more than before. Priority
   Indian) doesn't justify the cost (historical-rate lookups, drifting past-month totals since
   summaries are aggregated live, not stored). Revisit only if non-INR users actually show up.
 
-**b) Delete Account** — highest priority
+**b) Delete Account ✅ COMPLETE** — highest priority
 - New "Delete account" action under the existing Account section in `/settings`, below Sign out.
 - Confirm modal: lists what gets deleted (Expenses, Categories, Transactions, Recurring
   templates, Budgets), requires typing `DELETE` to proceed.
