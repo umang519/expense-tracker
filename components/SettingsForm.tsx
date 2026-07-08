@@ -27,7 +27,7 @@ interface User {
   currency: string;
 }
 
-export default function SettingsForm({ user }: { user: User }) {
+export default function SettingsForm({ user, appVersion }: { user: User; appVersion: string }) {
   const router = useRouter();
 
   // ── Profile ────────────────────────────────────────────────────────────────
@@ -441,6 +441,24 @@ export default function SettingsForm({ user }: { user: User }) {
           </div>
           <span className="text-gray-300 dark:text-gray-600 text-lg">›</span>
         </a>
+        <a
+          href="/reports"
+          className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-500 dark:text-violet-400 flex-shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 15V3M12 15l-4-4M12 15l4-4" />
+                <path d="M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Reports &amp; Export</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Yearly trends and CSV downloads</p>
+            </div>
+          </div>
+          <span className="text-gray-300 dark:text-gray-600 text-lg">›</span>
+        </a>
       </section>
 
       {/* Sign out */}
@@ -460,6 +478,20 @@ export default function SettingsForm({ user }: { user: User }) {
         >
           Delete account
         </button>
+      </section>
+
+      {/* About */}
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          About
+        </h2>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Expense Tracker</span>
+          <span className="text-gray-400 dark:text-gray-500 font-mono">v{appVersion}</span>
+        </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+          Your data is private to your account — no one else can see or access it.
+        </p>
       </section>
 
       <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />

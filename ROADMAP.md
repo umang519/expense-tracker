@@ -300,15 +300,19 @@ app, account-level controls (delete, security) matter more than before. Priority
   actual browser since no browser automation tool is available in this environment — worth a
   quick manual look before/after deploying.
 
-**d) About section**
-- Small static card: app version, link to GitHub repo, privacy/contact info if applicable.
-- Trivial effort, ships alongside (b) or (c) whenever convenient.
+**d) About section ⏳ ON HOLD**
+- Static card in Settings → About: app name + version (read from `package.json`), plus a short
+  privacy note ("Your data is private to your account — no one else can see or access it.").
+- No GitHub repo link for now — the app is intended to be free/open source eventually, but the
+  repo (`github.com/umang519/expense-tracker`) is still **private** while it's actively being
+  built out past MVP. Revisit adding a "View source on GitHub" link once the repo is actually
+  made public.
 
-**e) Export/Import discoverability**
-- CSV export already lives in `/reports` (`YearlyReport.tsx`, per-year and per-month download
-  links) and fits there well — **not moving it**. If it turns out users don't find it, add a
-  one-line link from Settings → Reports pointing at it, same pattern as the existing "Recurring
-  Expenses" quick link in `SettingsForm.tsx`.
+**e) Export/Import discoverability ✅ COMPLETE**
+- CSV export stays in `/reports` (`YearlyReport.tsx`, per-year and per-month download links) —
+  **not duplicated** elsewhere. Added a "Reports & Export" quick link in Settings → Quick Links
+  (same pattern/section as the existing "Recurring Expenses" link in `SettingsForm.tsx`) so users
+  who land in Settings can find the CSV export without hunting for the Reports tab.
 - Import/restore is a real feature (validation, duplicate/conflict handling) but bigger than it
   looks — deferred, revisit only if requested.
 
