@@ -308,11 +308,11 @@ app, account-level controls (delete, security) matter more than before. Priority
   built out past MVP. Revisit adding a "View source on GitHub" link once the repo is actually
   made public.
 
-**e) Export/Import discoverability**
-- CSV export already lives in `/reports` (`YearlyReport.tsx`, per-year and per-month download
-  links) and fits there well — **not moving it**. If it turns out users don't find it, add a
-  one-line link from Settings → Reports pointing at it, same pattern as the existing "Recurring
-  Expenses" quick link in `SettingsForm.tsx`.
+**e) Export/Import discoverability ✅ COMPLETE**
+- CSV export stays in `/reports` (`YearlyReport.tsx`, per-year and per-month download links) —
+  **not duplicated** elsewhere. Added a "Reports & Export" quick link in Settings → Quick Links
+  (same pattern/section as the existing "Recurring Expenses" link in `SettingsForm.tsx`) so users
+  who land in Settings can find the CSV export without hunting for the Reports tab.
 - Import/restore is a real feature (validation, duplicate/conflict handling) but bigger than it
   looks — deferred, revisit only if requested.
 
