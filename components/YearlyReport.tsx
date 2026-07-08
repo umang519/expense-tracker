@@ -287,7 +287,7 @@ export default function YearlyReport({
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart
                   data={chartData}
-                  margin={{ top: 0, right: 4, left: -16, bottom: 0 }}
+                  margin={{ top: 0, right: 4, left: -10, bottom: 0 }}
                   barSize={18}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
@@ -299,10 +299,10 @@ export default function YearlyReport({
                   />
                   <YAxis
                     tickFormatter={yAxisTick}
-                    tick={{ fontSize: 11, fill: "#9ca3af" }}
+                    tick={{ fontSize: 12, fill: "#9ca3af" }}
                     axisLine={false}
                     tickLine={false}
-                    width={36}
+                    width={50}
                   />
                   <Tooltip
                     formatter={(value, name) => {
