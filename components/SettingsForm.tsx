@@ -25,6 +25,7 @@ interface User {
   email: string;
   name: string;
   currency: string;
+  avatarUrl?: string;
 }
 
 export default function SettingsForm({ user, appVersion }: { user: User; appVersion: string }) {
@@ -54,6 +55,82 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
       }
     } catch {
       setProfileStatus("Network error. Please try again.");
+    }
+  }
+
+  // ── Avatar ─────────────────────────────────────────────────────────────────
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+  const [avatarStatus, setAvatarStatus] = useState<"idle" | "uploading" | string>("idle");
+
+  async function uploadAvatar(file: File) {
+    if (!navigator.onLine) { setAvatarStatus("You're offline. Connect to upload."); return; }
+    if (!file.type.startsWith("image/")) { setAvatarStatus("Please choose an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { setAvatarStatus("Image must be under 5MB"); return; }
+
+    setAvatarStatus("uploading");
+    try {
+      const sigRes = await fetch("/api/auth/avatar-signature", { method: "POST" });
+      if (!sigRes.ok) {
+        const d = await sigRes.json().catch(() => ({}));
+        setAvatarStatus(d.error ?? "Failed to start upload");
+        return;
+      }
+      const { signature, timestamp, folder, apiKey, cloudName } = await sigRes.json();
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("api_key", apiKey);
+      form.append("timestamp", String(timestamp));
+      form.append("signature", signature);
+      form.append("folder", folder);
+
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: form,
+      });
+      const uploaded = await uploadRes.json();
+      if (!uploadRes.ok) {
+        setAvatarStatus(uploaded.error?.message ?? "Upload failed");
+        return;
+      }
+
+      const saveRes = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: uploaded.secure_url, avatarPublicId: uploaded.public_id }),
+      });
+      if (saveRes.ok) {
+        setAvatarUrl(uploaded.secure_url);
+        setAvatarStatus("idle");
+        router.refresh();
+      } else {
+        const d = await saveRes.json().catch(() => ({}));
+        setAvatarStatus(d.error ?? "Failed to save picture");
+      }
+    } catch {
+      setAvatarStatus("Network error. Please try again.");
+    }
+  }
+
+  async function removeAvatar() {
+    if (!navigator.onLine) { setAvatarStatus("You're offline. Connect to save changes."); return; }
+    setAvatarStatus("uploading");
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: null, avatarPublicId: null }),
+      });
+      if (res.ok) {
+        setAvatarUrl(undefined);
+        setAvatarStatus("idle");
+        router.refresh();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setAvatarStatus(d.error ?? "Failed to remove picture");
+      }
+    } catch {
+      setAvatarStatus("Network error. Please try again.");
     }
   }
 
@@ -204,14 +281,59 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
 
         {/* Avatar + email */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold text-lg flex-shrink-0">
-            {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
-          </div>
-          <div>
+          <label className="relative w-12 h-12 flex-shrink-0 cursor-pointer group">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- Cloudinary URL, app has no other next/image usage
+              <img
+                src={avatarUrl}
+                alt=""
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400 font-bold text-lg">
+                {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={avatarStatus === "uploading"}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file) uploadAvatar(file);
+              }}
+            />
+          </label>
+          <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{user.name || "—"}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">{user.email}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{user.email}</p>
           </div>
+          {avatarUrl && avatarStatus !== "uploading" && (
+            <button
+              type="button"
+              onClick={removeAvatar}
+              className="text-xs text-red-500 dark:text-red-400 hover:underline flex-shrink-0"
+            >
+              Remove
+            </button>
+          )}
         </div>
+        {avatarStatus === "uploading" && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 -mt-3 mb-4">Uploading…</p>
+        )}
+        {avatarStatus !== "idle" && avatarStatus !== "uploading" && (
+          <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-1.5 -mt-3 mb-4">
+            {avatarStatus}
+          </p>
+        )}
 
         <form onSubmit={saveProfile} className="space-y-3">
           <div>

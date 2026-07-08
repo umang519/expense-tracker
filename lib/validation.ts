@@ -86,6 +86,15 @@ export type BudgetUpdateInput = z.infer<typeof BudgetUpdateSchema>;
 export const UpdateProfileSchema = z.object({
   name: z.string().trim().max(100).optional(),
   currency: z.string().length(3, "Must be a 3-letter currency code").optional(),
+  avatarUrl: z
+    .string()
+    .url()
+    .refine((url) => new URL(url).hostname === "res.cloudinary.com", {
+      message: "Invalid avatar URL",
+    })
+    .nullable()
+    .optional(),
+  avatarPublicId: z.string().max(300).nullable().optional(),
 });
 
 export const ChangePasswordSchema = z.object({

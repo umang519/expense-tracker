@@ -65,9 +65,12 @@ npm install
 Create a `.env.local` in the project root:
 
 ```bash
-MONGODB_URI=       # MongoDB Atlas connection string
-JWT_SECRET=        # long random string
-RESEND_API_KEY=    # for OTP / password-reset emails
+MONGODB_URI=            # MongoDB Atlas connection string
+JWT_SECRET=             # long random string
+RESEND_API_KEY=         # for OTP / password-reset emails
+CLOUDINARY_CLOUD_NAME=  # for profile picture uploads
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
 Then run the dev server:

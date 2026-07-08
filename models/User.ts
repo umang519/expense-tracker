@@ -5,6 +5,8 @@ export interface IUser extends Document {
   passwordHash: string;
   name?: string;
   currency: string;
+  avatarUrl?: string;
+  avatarPublicId?: string;
   pendingEmail?: string;
   emailOtp?: string;
   emailOtpExpiresAt?: Date;
@@ -38,6 +40,8 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: "INR",
     },
+    avatarUrl: { type: String },
+    avatarPublicId: { type: String },
     pendingEmail: { type: String },
     emailOtp: { type: String },
     emailOtpExpiresAt: { type: Date },
