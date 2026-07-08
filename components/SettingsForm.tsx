@@ -27,7 +27,7 @@ interface User {
   currency: string;
 }
 
-export default function SettingsForm({ user }: { user: User }) {
+export default function SettingsForm({ user, appVersion }: { user: User; appVersion: string }) {
   const router = useRouter();
 
   // ── Profile ────────────────────────────────────────────────────────────────
@@ -460,6 +460,20 @@ export default function SettingsForm({ user }: { user: User }) {
         >
           Delete account
         </button>
+      </section>
+
+      {/* About */}
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+          About
+        </h2>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-400">Expense Tracker</span>
+          <span className="text-gray-400 dark:text-gray-500 font-mono">v{appVersion}</span>
+        </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+          Your data is private to your account — no one else can see or access it.
+        </p>
       </section>
 
       <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />
