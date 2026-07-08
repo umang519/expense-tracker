@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest, COOKIE_NAME } from "@/lib/auth";
 import { UpdateProfileSchema } from "@/lib/validation";
+import { avatarFolder, deleteCloudinaryAsset } from "@/lib/cloudinary";
 import User from "@/models/User";
 import Category from "@/models/Category";
 import Expense from "@/models/Expense";
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
       email: user.email,
       name: user.name,
       currency: user.currency,
+      avatarUrl: user.avatarUrl,
     },
   });
 }
@@ -46,7 +48,22 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // A new/updated avatar's publicId must live under this user's own Cloudinary folder —
+  // never trust it enough to delete or reference an asset outside that scope.
+  if (
+    parsed.data.avatarPublicId != null &&
+    !parsed.data.avatarPublicId.startsWith(`${avatarFolder(auth.userId)}/`)
+  ) {
+    return NextResponse.json({ error: "Invalid avatar" }, { status: 400 });
+  }
+
   await connectDB();
+
+  const previous = await User.findById(auth.userId).select("avatarPublicId");
+  const replacingAvatar =
+    ("avatarPublicId" in parsed.data) &&
+    previous?.avatarPublicId &&
+    previous.avatarPublicId !== parsed.data.avatarPublicId;
 
   const user = await User.findByIdAndUpdate(
     auth.userId,
@@ -56,12 +73,17 @@ export async function PATCH(req: NextRequest) {
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  if (replacingAvatar && previous?.avatarPublicId) {
+    await deleteCloudinaryAsset(previous.avatarPublicId);
+  }
+
   return NextResponse.json({
     user: {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
       currency: user.currency,
+      avatarUrl: user.avatarUrl,
     },
   });
 }
@@ -73,6 +95,7 @@ export async function DELETE(req: NextRequest) {
   await connectDB();
 
   const userId = auth.userId;
+  const existingUser = await User.findById(userId).select("avatarPublicId");
   await Promise.all([
     Expense.deleteMany({ userId }),
     Category.deleteMany({ userId }),
@@ -82,6 +105,9 @@ export async function DELETE(req: NextRequest) {
     PushSubscription.deleteMany({ userId }),
   ]);
   await User.findByIdAndDelete(userId);
+  if (existingUser?.avatarPublicId) {
+    await deleteCloudinaryAsset(existingUser.avatarPublicId);
+  }
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(COOKIE_NAME, "", {

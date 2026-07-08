@@ -21,6 +21,7 @@ export default async function SettingsPage() {
     email: user.email,
     name: user.name ?? "",
     currency: user.currency ?? "INR",
+    avatarUrl: user.avatarUrl,
   };
 
   return (

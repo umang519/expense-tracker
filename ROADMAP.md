@@ -321,6 +321,18 @@ everywhere (needs server-side session tracking, not just a single JWT cookie), o
 display + clear button, language/i18n, reminder-time customization beyond the current on/off
 toggle, auto-enable-save-button UX polish.
 
+### Phase 20 — Profile picture upload (Cloudinary) 🚧 IN PROGRESS
+- Optional avatar shown in `/settings` and anywhere the initials-circle currently appears.
+- Upload flow: browser uploads directly to Cloudinary using a short-lived signed payload issued
+  by a new `POST /api/auth/avatar-signature` route (server never proxies the image bytes —
+  avoids Vercel serverless body-size/timeout limits). Client then `PATCH /api/auth/me` with the
+  returned `avatarUrl` + `avatarPublicId` to persist, same pattern as the existing name/currency
+  save.
+- `User` model gains `avatarUrl?`, `avatarPublicId?`. Replacing or removing a picture deletes the
+  previous Cloudinary asset server-side (signed admin API call); account deletion
+  (`DELETE /api/auth/me`) does the same cleanup as part of its cascade.
+- New env vars: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+
 ---
 
 ## 8. Security Checklist (keep enforcing)
