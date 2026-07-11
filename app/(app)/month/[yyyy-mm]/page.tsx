@@ -7,6 +7,10 @@ import Link from "next/link";
 import MonthSummary from "@/components/MonthSummary";
 import ExpenseList from "@/components/ExpenseList";
 import { monthLabel, adjacentMonths, currentMonth } from "@/lib/format";
+import { getMonthlySummary } from "@/lib/data/summary";
+import { getExpensesForMonth, getCategoriesForUser } from "@/lib/data/expenses";
+
+export const preferredRegion = "bom1";
 
 type Props = { params: Promise<{ "yyyy-mm": string }> };
 
@@ -28,6 +32,12 @@ export default async function MonthPage({ params }: Props) {
   const { prev, next } = adjacentMonths(month);
   const now = currentMonth();
   const isFuture = month > now;
+
+  const [summary, expenses, categories] = await Promise.all([
+    getMonthlySummary(payload.sub, month),
+    getExpensesForMonth(payload.sub, month),
+    getCategoriesForUser(payload.sub),
+  ]);
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
@@ -62,10 +72,15 @@ export default async function MonthPage({ params }: Props) {
         </div>
 
         {/* Monthly summary */}
-        <MonthSummary month={month} currency={currency} />
+        <MonthSummary month={month} currency={currency} initialData={summary} />
 
         {/* All expenses grouped by day */}
-        <ExpenseList month={month} currency={currency} />
+        <ExpenseList
+          month={month}
+          currency={currency}
+          initialExpenses={expenses}
+          initialCategories={categories}
+        />
       </div>
     </main>
   );
