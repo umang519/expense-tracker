@@ -60,7 +60,7 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
 
   // ── Avatar ─────────────────────────────────────────────────────────────────
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
-  const [avatarStatus, setAvatarStatus] = useState<"idle" | "uploading" | string>("idle");
+  const [avatarStatus, setAvatarStatus] = useState<"idle" | "uploading" | "removing" | string>("idle");
 
   async function uploadAvatar(file: File) {
     if (!navigator.onLine) { setAvatarStatus("You're offline. Connect to upload."); return; }
@@ -114,7 +114,7 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
 
   async function removeAvatar() {
     if (!navigator.onLine) { setAvatarStatus("You're offline. Connect to save changes."); return; }
-    setAvatarStatus("uploading");
+    setAvatarStatus("removing");
     try {
       const res = await fetch("/api/auth/me", {
         method: "PATCH",
@@ -294,8 +294,9 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
                 {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
               </div>
             )}
-            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Always-visible badge (not hover-only — hover state doesn't exist on touch devices) */}
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-violet-600 border-2 border-white dark:border-gray-900 flex items-center justify-center group-hover:bg-violet-700 group-active:bg-violet-700 transition-colors">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
@@ -304,7 +305,7 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
               type="file"
               accept="image/*"
               className="hidden"
-              disabled={avatarStatus === "uploading"}
+              disabled={avatarStatus === "uploading" || avatarStatus === "removing"}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
@@ -316,7 +317,7 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{user.name || "—"}</p>
             <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{user.email}</p>
           </div>
-          {avatarUrl && avatarStatus !== "uploading" && (
+          {avatarUrl && avatarStatus !== "uploading" && avatarStatus !== "removing" && (
             <button
               type="button"
               onClick={removeAvatar}
@@ -329,7 +330,10 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
         {avatarStatus === "uploading" && (
           <p className="text-xs text-gray-400 dark:text-gray-500 -mt-3 mb-4">Uploading…</p>
         )}
-        {avatarStatus !== "idle" && avatarStatus !== "uploading" && (
+        {avatarStatus === "removing" && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 -mt-3 mb-4">Removing…</p>
+        )}
+        {avatarStatus !== "idle" && avatarStatus !== "uploading" && avatarStatus !== "removing" && (
           <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-1.5 -mt-3 mb-4">
             {avatarStatus}
           </p>

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NO_FLASH_THEME_SCRIPT } from "@/lib/theme";
-import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -35,9 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
+        {/* Server-rendered <script> in a Server Component: React 19 hoists this into
+            the streamed HTML's <head> and runs it before hydration, so the correct
+            theme class is set before first paint without going through next/script's
+            client-side injection (which triggers React 19's script-tag warning). */}
+        <script
           id="theme-script"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }}
         />
       </head>
