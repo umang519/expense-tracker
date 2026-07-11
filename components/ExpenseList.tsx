@@ -27,19 +27,23 @@ async function fetchCategories(): Promise<Category[]> {
 interface Props {
   month: string;
   currency?: string;
+  initialExpenses?: PopulatedExpense[];
+  initialCategories?: Category[];
 }
 
-export default function ExpenseList({ month, currency = "INR" }: Props) {
+export default function ExpenseList({ month, currency = "INR", initialExpenses, initialCategories }: Props) {
   const qc = useQueryClient();
   const { data: expenses = [], isLoading, isError } = useQuery({
     queryKey: ["expenses", month],
     queryFn: () => fetchExpenses(month),
+    initialData: initialExpenses,
   });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     staleTime: 60_000,
+    initialData: initialCategories,
   });
 
   // Filters

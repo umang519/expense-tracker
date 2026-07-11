@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { ExpenseCreateSchema } from "@/lib/validation";
+import { getExpensesForMonth } from "@/lib/data/expenses";
 import Expense from "@/models/Expense";
 import Category from "@/models/Category";
 import { Types } from "mongoose";
@@ -13,22 +14,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const month = searchParams.get("month"); // YYYY-MM
 
-  await connectDB();
-
-  const filter: Record<string, any> = { userId: auth.userId };
-
-  if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [year, mon] = month.split("-").map(Number);
-    filter.date = {
-      $gte: new Date(Date.UTC(year, mon - 1, 1)),
-      $lt: new Date(Date.UTC(year, mon, 1)),
-    };
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    return NextResponse.json({ error: "month param required (YYYY-MM)" }, { status: 400 });
   }
 
-  const expenses = await Expense.find(filter)
-    .populate("categoryId", "name color")
-    .sort({ date: -1, _id: -1 });
-
+  const expenses = await getExpensesForMonth(auth.userId, month);
   return NextResponse.json({ expenses });
 }
 

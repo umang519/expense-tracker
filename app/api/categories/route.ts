@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { CategoryCreateSchema } from "@/lib/validation";
+import { getCategoriesForUser } from "@/lib/data/expenses";
 import Category from "@/models/Category";
 
 export async function GET(req: NextRequest) {
   const auth = await getUserFromRequest(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  await connectDB();
-
-  const categories = await Category.find({ userId: auth.userId }).sort({
-    sortOrder: 1,
-    _id: 1,
-  });
-
+  const categories = await getCategoriesForUser(auth.userId);
   return NextResponse.json({ categories });
 }
 

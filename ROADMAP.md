@@ -321,7 +321,7 @@ everywhere (needs server-side session tracking, not just a single JWT cookie), o
 display + clear button, language/i18n, reminder-time customization beyond the current on/off
 toggle, auto-enable-save-button UX polish.
 
-### Phase 20 — Profile picture upload (Cloudinary) 🚧 IN PROGRESS
+### Phase 20 — Profile picture upload (Cloudinary) ✅ COMPLETED
 - Optional avatar shown in `/settings` and anywhere the initials-circle currently appears.
 - Upload flow: browser uploads directly to Cloudinary using a short-lived signed payload issued
   by a new `POST /api/auth/avatar-signature` route (server never proxies the image bytes —

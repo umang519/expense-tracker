@@ -51,13 +51,15 @@ function budgetStatus(spent: number, budget: number, currency: string) {
 interface Props {
   month: string;
   currency?: string;
+  initialData?: Summary;
 }
 
-export default function MonthSummary({ month, currency = "INR" }: Props) {
+export default function MonthSummary({ month, currency = "INR", initialData }: Props) {
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["summary", "monthly", month],
     queryFn: () => fetchSummary(month),
     staleTime: 30_000,
+    initialData,
   });
 
   if (isLoading || isFetching) {
