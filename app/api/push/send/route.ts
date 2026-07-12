@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import webpush from "web-push";
-import { connectDB } from "@/lib/db";
-import PushSubscription from "@/models/PushSubscription";
-
-const PAYLOAD = JSON.stringify({
-  title: "Expense Tracker",
-  body: "Don't forget to log today's expenses! 📝",
-});
+import { sendDailyReminderIfDue } from "@/lib/push";
 
 // Vercel cron jobs make GET requests — handler must be GET
 export async function GET(req: NextRequest) {
@@ -15,38 +8,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  webpush.setVapidDetails(
-    process.env.VAPID_EMAIL!,
-    process.env.VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-  );
-
-  await connectDB();
-  const subs = await PushSubscription.find({}).lean();
-
-  let sent = 0;
-  const stale: string[] = [];
-
-  await Promise.allSettled(
-    subs.map(async (sub) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: sub.keys },
-          PAYLOAD
-        );
-        sent++;
-      } catch (err: unknown) {
-        const status = (err as { statusCode?: number }).statusCode;
-        if (status === 404 || status === 410) {
-          stale.push(sub.endpoint);
-        }
-      }
-    })
-  );
-
-  if (stale.length > 0) {
-    await PushSubscription.deleteMany({ endpoint: { $in: stale } });
-  }
-
-  return NextResponse.json({ sent, removed: stale.length });
+  const result = await sendDailyReminderIfDue();
+  return NextResponse.json(result);
 }
