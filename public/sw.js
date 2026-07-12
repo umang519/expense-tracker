@@ -147,3 +147,55 @@ self.addEventListener("notificationclick", (event) => {
       })
   );
 });
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
+// Browsers periodically rotate/expire a push subscription's endpoint on their
+// own (security hygiene, long inactivity, etc). Without this handler the old
+// endpoint just goes dead and the user silently stops getting notifications
+// despite still showing "permission granted" — this re-subscribes and tells
+// the server about the new endpoint automatically.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      const oldEndpoint = event.oldSubscription?.endpoint;
+
+      let applicationServerKey = event.oldSubscription?.options?.applicationServerKey;
+      if (!applicationServerKey) {
+        const res = await fetch("/api/push/vapid-key");
+        const { publicKey } = await res.json();
+        applicationServerKey = urlBase64ToUint8Array(publicKey);
+      }
+
+      const newSub = await self.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      });
+
+      const json = newSub.toJSON();
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          endpoint: newSub.endpoint,
+          keys: { p256dh: json.keys?.p256dh ?? "", auth: json.keys?.auth ?? "" },
+        }),
+      });
+
+      if (oldEndpoint) {
+        await fetch("/api/push/subscribe", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: oldEndpoint }),
+        });
+      }
+    })()
+  );
+});
