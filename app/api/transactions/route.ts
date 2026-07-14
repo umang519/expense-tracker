@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { TransactionCreateSchema } from "@/lib/validation";
+import { summaryCacheTag } from "@/lib/data/summary";
 import Transaction from "@/models/Transaction";
 
 export async function GET(req: NextRequest) {
@@ -51,5 +53,6 @@ export async function POST(req: NextRequest) {
     isInvestment: isInvestment ?? false,
   });
 
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ transaction }, { status: 201 });
 }

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { TransactionUpdateSchema } from "@/lib/validation";
+import { summaryCacheTag } from "@/lib/data/summary";
 import Transaction from "@/models/Transaction";
 import { Types } from "mongoose";
 
@@ -47,6 +49,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
 
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ transaction });
 }
 
@@ -66,5 +69,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
   }
 
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ deleted: true });
 }

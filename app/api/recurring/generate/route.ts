@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { summaryCacheTag } from "@/lib/data/summary";
 import RecurringExpense from "@/models/RecurringExpense";
 import Expense from "@/models/Expense";
 import { Types } from "mongoose";
@@ -122,5 +124,6 @@ export async function POST(req: NextRequest) {
     totalGenerated += dueDates.length;
   }
 
+  if (totalGenerated > 0) revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ generated: totalGenerated });
 }
