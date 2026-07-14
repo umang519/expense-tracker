@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { ExpenseUpdateSchema } from "@/lib/validation";
+import { summaryCacheTag } from "@/lib/data/summary";
 import Expense from "@/models/Expense";
 import Category from "@/models/Category";
 import { Types } from "mongoose";
@@ -60,6 +62,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Expense not found" }, { status: 404 });
   }
 
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ expense });
 }
 
@@ -79,5 +82,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Expense not found" }, { status: 404 });
   }
 
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ deleted: true });
 }

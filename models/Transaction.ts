@@ -14,7 +14,6 @@ const TransactionSchema = new Schema<ITransaction>({
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    index: true,
   },
   date: {
     type: Date,
@@ -39,6 +38,9 @@ const TransactionSchema = new Schema<ITransaction>({
     default: false,
   },
 });
+
+// Compound index for efficient per-user date-range queries (yearly summary aggregation)
+TransactionSchema.index({ userId: 1, date: -1 });
 
 const Transaction: Model<ITransaction> =
   mongoose.models.Transaction ??

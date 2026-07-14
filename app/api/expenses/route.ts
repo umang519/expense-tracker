@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { ExpenseCreateSchema } from "@/lib/validation";
 import { getExpensesForMonth } from "@/lib/data/expenses";
+import { summaryCacheTag } from "@/lib/data/summary";
 import Expense from "@/models/Expense";
 import Category from "@/models/Category";
 import { Types } from "mongoose";
@@ -63,5 +65,6 @@ export async function POST(req: NextRequest) {
   });
 
   const populated = await expense.populate("categoryId", "name color");
+  revalidateTag(summaryCacheTag(auth.userId), "max");
   return NextResponse.json({ expense: populated }, { status: 201 });
 }
