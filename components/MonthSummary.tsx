@@ -1,9 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
+
+// Recharts is a large dependency that's only needed once summary data has
+// loaded; dynamic-importing it keeps it out of the initial JS payload for
+// the dashboard/month pages.
+const MonthDonutChart = dynamic(() => import("./charts/MonthDonutChart"), {
+  ssr: false,
+  loading: () => <div className="h-40 bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse" />,
+});
 
 interface BudgetRef {
   _id: string;
@@ -165,47 +173,7 @@ export default function MonthSummary({ month, currency = "INR", initialData }: P
           {formatAmount(data.total, currency)}
         </p>
 
-        <div className="relative">
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie
-                data={data.categories}
-                dataKey="total"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={52}
-                outerRadius={72}
-                strokeWidth={2}
-                stroke="#f9fafb"
-                paddingAngle={2}
-              >
-                {data.categories.map((cat) => (
-                  <Cell key={cat.categoryId} fill={cat.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value) =>
-                  typeof value === "number"
-                    ? [formatAmount(value, currency), ""]
-                    : [value, ""]
-                }
-                contentStyle={{
-                  fontSize: 12,
-                  borderRadius: 8,
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 1px 4px rgba(0,0,0,.08)",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <p className="text-xs text-gray-400 dark:text-gray-500">{data.categories.length} categories</p>
-            </div>
-          </div>
-        </div>
+        <MonthDonutChart categories={data.categories} currency={currency} />
       </div>
 
       {/* Per-category breakdown */}
