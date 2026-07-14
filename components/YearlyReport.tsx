@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
+
+// Recharts is a large dependency that's only needed once yearly data has
+// loaded; dynamic-importing it keeps it out of the initial JS payload for
+// the reports page.
+const YearlyBarChart = dynamic(() => import("./charts/YearlyBarChart"), {
+  ssr: false,
+  loading: () => <div className="h-[180px] bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse" />,
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -78,12 +78,6 @@ async function fetchYearly(year: number): Promise<YearlySummary> {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function yAxisTick(value: number) {
-  if (value >= 100000) return `${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
-  return String(value);
-}
 
 function shortDate(iso: string) {
   const [, m, d] = iso.split("-");
@@ -284,57 +278,7 @@ export default function YearlyReport({
               <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
                 Monthly trend
               </p>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 0, right: 4, left: -10, bottom: 0 }}
-                  barSize={18}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 11, fill: "#9ca3af" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tickFormatter={yAxisTick}
-                    tick={{ fontSize: 12, fill: "#9ca3af" }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={50}
-                  />
-                  <Tooltip
-                    formatter={(value, name) => {
-                      const cat = data.categories.find((c) => c.categoryId === name);
-                      return [
-                        typeof value === "number" ? formatAmount(value, currency) : value,
-                        cat?.name ?? String(name),
-                      ];
-                    }}
-                    contentStyle={{
-                      fontSize: 12,
-                      borderRadius: 8,
-                      border: "1px solid #e5e7eb",
-                      boxShadow: "0 1px 4px rgba(0,0,0,.08)",
-                    }}
-                  />
-                  {data.categories.map((cat) => (
-                    <Bar
-                      key={cat.categoryId}
-                      dataKey={cat.categoryId}
-                      stackId="a"
-                      fill={cat.color}
-                      name={cat.name}
-                      radius={
-                        cat.categoryId === data.categories[data.categories.length - 1].categoryId
-                          ? [3, 3, 0, 0]
-                          : [0, 0, 0, 0]
-                      }
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+              <YearlyBarChart chartData={chartData} categories={data.categories} currency={currency} />
             </div>
           )}
 
