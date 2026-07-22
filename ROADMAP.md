@@ -317,9 +317,9 @@ app, account-level controls (delete, security) matter more than before. Priority
   looks — deferred, revisit only if requested.
 
 **Explicitly deferred** (tracked in `docs/IDEAS.md`, not planned yet): active sessions / sign-out-
-everywhere (needs server-side session tracking, not just a single JWT cookie), offline cache size
-display + clear button, language/i18n, reminder-time customization beyond the current on/off
-toggle, auto-enable-save-button UX polish.
+everywhere (needs server-side session tracking, not just a single JWT cookie — now planned as a
+side effect of Phase 21), offline cache size display + clear button, language/i18n,
+reminder-time customization beyond the current on/off toggle, auto-enable-save-button UX polish.
 
 ### Phase 20 — Profile picture upload (Cloudinary) ✅ COMPLETED 
 - Optional avatar shown in `/settings` and anywhere the initials-circle currently appears.
@@ -333,6 +333,70 @@ toggle, auto-enable-save-button UX polish.
   (`DELETE /api/auth/me`) does the same cleanup as part of its cascade.
 - New env vars: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 - added image reference to see the profile change for mobile 
+
+### Phase 21 — "Remember me" / refresh tokens (fixes silent daily-reminder drop-off) ✅ COMPLETE
+
+**Reported symptom:** users get the daily "log your expense" push for a day or two, then it just
+stops. Investigating why led to two compounding bugs, not one — a longer session alone fixes the
+first but not the second, so both need doing together.
+
+**Root cause 1 — no refresh mechanism.** `signJWT` (`lib/auth.ts`) and the login/verify-email
+routes already issue a **7-day** JWT cookie, but there's no way to extend it short of logging in
+again. Once it expires — or once iOS evicts a home-screen PWA's storage after ~7 days of no visits
+in Safari, a known WebKit behavior — the user is hard-logged-out with no warning.
+
+**Root cause 2 — the cron fallback depends on the exact thing it exists to cover for.** The reminder
+is scheduled via Vercel Hobby-plan cron (`vercel.json`), which only runs in a "flexible 1-hour
+window" and isn't guaranteed to fire daily. The fallback, `POST /api/push/notify-check`, is meant to
+catch a missed cron run whenever any user opens the app after 7:30pm IST — but it requires
+`getUserFromRequest` to succeed, and `sendDailyReminderIfDue()` (`lib/push.ts`) is a **broadcast to
+every subscribed user** gated once-per-day, not per-user. So once nobody has a valid session late in
+the day, the fallback can't fire for *anyone*, and if the cron window also happens to miss, the
+entire subscriber batch gets skipped that day — which reads exactly like "notifications just
+stopped."
+
+**a) Refresh-token based session (the "remember me" part) ✅ COMPLETE**
+- `/login` (`app/(auth)/login/page.tsx`) has a **"Remember me for 30 days"** checkbox, checked by
+  default, with a caption explaining why ("keeps you signed in... so daily reminders don't stop").
+  Shown deliberately rather than silently always-on, so users understand *why* they're staying
+  logged in on a device — this is user-facing consent/awareness, not just a technical toggle.
+  - Checked → issue both the access JWT and the 30-day refresh cookie (sliding expiry, see below).
+  - Unchecked → issue only the access JWT (1-day session, no refresh cookie at all), for anyone who
+    wants a shorter-lived session on a shared device.
+- `RefreshToken` model (`models/RefreshToken.ts`): `userId` (indexed), `tokenHash` (sha256 of a
+  random opaque token — raw value only ever lives in the cookie, never stored plain), `expiresAt`
+  (TTL index, 30 days), `createdAt`.
+- The JWT is now a short-lived **access token** (`ACCESS_TOKEN_TTL_SECONDS` = 1 day, `lib/auth.ts`).
+  A separate refresh cookie (`REFRESH_COOKIE_NAME`, httpOnly/Secure/SameSite, `maxAge` 30 days) is
+  set alongside it only when "remember me" was checked (also issued unconditionally by
+  `verify-email`, since completing signup is already "this device").
+- `POST /api/auth/refresh`: validates the refresh cookie against the stored hash and, if valid,
+  issues a new access JWT **and rotates the refresh token** (new random value + new hash, old row
+  deleted) — sliding 30-day expiry, and rotation limits the blast radius if a token is ever stolen.
+- `proxy.ts` (edge middleware) can't do Mongoose/DB lookups directly, so on an expired/missing
+  access JWT with a refresh cookie present, it calls `/api/auth/refresh` via an internal `fetch`
+  (forwarding the request's cookies) and, on success, forwards the response's `Set-Cookie` headers
+  onto the continued request instead of redirecting. Net effect: anyone who checked "remember me"
+  and opens the app at least once every 30 days stays logged in indefinitely; a genuinely abandoned
+  session expires cleanly via the TTL index.
+- Logout (`app/api/auth/logout/route.ts`) and delete-account (`DELETE /api/auth/me`) revoke the
+  specific `RefreshToken` row(s), not just clear cookies — it's a database-backed credential now,
+  not just a signed, stateless JWT.
+
+**b) Decouple the notification fallback from any one user's session ✅ COMPLETE**
+- `POST /api/push/notify-check` no longer calls `getUserFromRequest` — it's unauthenticated. Safe to
+  leave open: it doesn't read/write user-specific data, and `sendDailyReminderIfDue()` is idempotent
+  per IST calendar day (via `NotificationRun`), so it can't be abused to spam anyone.
+- `<NotificationFallbackTrigger />` moved from `app/(app)/layout.tsx` (only reachable once already
+  logged in) to the root `app/layout.tsx`, so it fires on **any** page view — `/login`, `/register`,
+  anything — not just inside the authenticated app shell. Now the fallback fires precisely in the
+  scenario it needs to cover: everyone logged out, someone lands on `/login` to sign back in, and
+  that alone is enough to trigger the day's reminder broadcast.
+
+**Rollout order:** (b) shipped first (small, isolated, fixed the acute symptom fastest), then (a) in
+full: `RefreshToken` model → `/api/auth/refresh` → "remember me" checkbox on `/login` wired to issue
+the refresh cookie → verify-email issuing it too → logout/delete-account revocation →
+`proxy.ts` silent-refresh. Both halves are now shipped.
 
 ---
 

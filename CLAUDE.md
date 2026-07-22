@@ -13,7 +13,12 @@ one-off transactions, and views monthly/yearly summaries. Currency defaults to I
 - **Next.js 15 (App Router) + React 19 + TypeScript** — UI and backend in one app.
 - **Backend = Next.js Route Handlers** (`app/api/**/route.ts`), running on Node.js. Do NOT add a separate Express server.
 - **MongoDB Atlas + Mongoose** for persistence.
-- **Auth:** email + password. bcrypt for hashing, JWT stored in an **httpOnly cookie**.
+- **Auth:** email + password. bcrypt for hashing. Two cookies: a short-lived (1-day) access JWT
+  (httpOnly) plus an optional 30-day "remember me" refresh token (httpOnly, opaque, hashed in the
+  `RefreshToken` collection — see ROADMAP.md Phase 21). `proxy.ts` silently exchanges an expired
+  access JWT for a new one via `POST /api/auth/refresh` when a refresh cookie is present, instead of
+  redirecting to `/login`. Logout and account deletion must revoke the matching `RefreshToken` row,
+  not just clear cookies.
 - **Zod** for validation (shared client + server). **Tailwind CSS** for styling. **TanStack Query** for client data. **Recharts** for charts.
 
 ## Commands
@@ -32,7 +37,7 @@ app/
   (auth)/login/        register/        # auth pages
   (app)/                                # protected pages: dashboard, month, reports, categories, transactions, settings
   api/
-    auth/{register,login,logout,me}/route.ts
+    auth/{register,login,logout,me,refresh}/route.ts
     categories/route.ts        categories/[id]/route.ts
     expenses/route.ts          expenses/[id]/route.ts
     summary/{monthly,yearly}/route.ts
@@ -41,7 +46,7 @@ lib/
   db.ts            # cached Mongoose connection (reuse across hot reloads)
   auth.ts          # hash/verify password, sign/verify JWT, getUserFromRequest
   validation.ts    # Zod schemas
-models/            # Mongoose models: User, Category, Expense, Transaction
+models/            # Mongoose models: User, Category, Expense, Transaction, RefreshToken, ...
 components/        # UI components
 proxy.ts           # protects (app) routes, redirects unauthenticated users to /login
 ```

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NO_FLASH_THEME_SCRIPT } from "@/lib/theme";
+import NotificationFallbackTrigger from "@/components/NotificationFallbackTrigger";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         {children}
+        <NotificationFallbackTrigger />
         <Analytics />
         <SpeedInsights />
       </body>
