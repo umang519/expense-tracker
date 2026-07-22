@@ -47,7 +47,7 @@ async function getKey(secret: string): Promise<CryptoKey> {
 
 export async function signJWT(
   payload: Omit<JWTPayload, "iat" | "exp">,
-  expiresInSeconds = 60 * 60 * 24 * 7 // 7 days
+  expiresInSeconds = ACCESS_TOKEN_TTL_SECONDS
 ): Promise<string> {
   const header = base64url(
     new TextEncoder().encode(JSON.stringify({ alg: "HS256", typ: "JWT" }))
@@ -108,3 +108,25 @@ export async function getUserFromRequest(
 }
 
 export { COOKIE_NAME };
+
+// ── Refresh tokens ("remember me") ────────────────────────────────────────────
+// Access JWT stays short-lived; a separate opaque refresh token (stored hashed
+// in the RefreshToken collection) backs a 30-day sliding session for users who
+// check "remember me" at login. Uses Web Crypto (not node:crypto) so this file
+// stays importable from edge middleware (proxy.ts) without bundling issues.
+
+export const REFRESH_COOKIE_NAME = "refresh_token";
+export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24; // 1 day
+export const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+
+export async function hashRefreshToken(raw: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(raw)
+  );
+  return base64url(digest);
+}
+
+export function generateRefreshToken(): string {
+  return base64url(crypto.getRandomValues(new Uint8Array(32)));
+}

@@ -5,14 +5,12 @@ import RecurringAutoGenerate from "@/components/RecurringAutoGenerate";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import OfflineSyncProvider from "@/components/OfflineSyncProvider";
-import NotificationFallbackTrigger from "@/components/NotificationFallbackTrigger";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
       <ServiceWorkerRegister />
       <RecurringAutoGenerate />
-      <NotificationFallbackTrigger />
       <OfflineIndicator />
       <OfflineSyncProvider />
       <div className="pb-16">{children}</div>

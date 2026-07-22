@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { sendDailyReminderIfDue, isPastReminderTimeIST } from "@/lib/push";
 
 // Fallback for Vercel's Hobby-plan cron, which runs in a "flexible 1-hour
-// window" and isn't guaranteed to fire every day. Any logged-in user opening
-// the app after the scheduled reminder time triggers this; sendDailyReminderIfDue
-// is idempotent per IST calendar day, so it's safe even if the real cron also fires.
-export async function POST(req: NextRequest) {
-  const auth = await getUserFromRequest(req);
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+// window" and isn't guaranteed to fire every day. Deliberately unauthenticated:
+// it's triggered from the root layout on *any* page view (including /login),
+// so it still fires even when nobody currently has a valid session — that's
+// exactly the scenario it needs to cover for. It's safe to leave open because
+// it doesn't read/write any user-specific data and sendDailyReminderIfDue is
+// idempotent per IST calendar day, so it can't be abused to spam anyone.
+export async function POST() {
   if (!isPastReminderTimeIST()) {
     return NextResponse.json({ skipped: true });
   }

@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [pwError, setPwError] = useState("");
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, rememberMe }),
     });
 
     const data = await res.json();
@@ -89,6 +90,18 @@ export default function LoginPage() {
               <p className="text-xs text-red-600 dark:text-red-400 mt-1">{pwError}</p>
             )}
           </div>
+
+          <label className="flex items-start gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Remember me
+            </span>
+          </label>
 
           {formError && (
             <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-2">

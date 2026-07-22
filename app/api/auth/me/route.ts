@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { getUserFromRequest, COOKIE_NAME } from "@/lib/auth";
+import { getUserFromRequest, COOKIE_NAME, REFRESH_COOKIE_NAME } from "@/lib/auth";
 import { UpdateProfileSchema } from "@/lib/validation";
 import { avatarFolder, deleteCloudinaryAsset } from "@/lib/cloudinary";
 import User from "@/models/User";
@@ -10,6 +10,7 @@ import Transaction from "@/models/Transaction";
 import Budget from "@/models/Budget";
 import RecurringExpense from "@/models/RecurringExpense";
 import PushSubscription from "@/models/PushSubscription";
+import RefreshToken from "@/models/RefreshToken";
 
 export async function GET(req: NextRequest) {
   const auth = await getUserFromRequest(req);
@@ -103,6 +104,7 @@ export async function DELETE(req: NextRequest) {
     Budget.deleteMany({ userId }),
     RecurringExpense.deleteMany({ userId }),
     PushSubscription.deleteMany({ userId }),
+    RefreshToken.deleteMany({ userId }),
   ]);
   await User.findByIdAndDelete(userId);
   if (existingUser?.avatarPublicId) {
@@ -111,6 +113,13 @@ export async function DELETE(req: NextRequest) {
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  response.cookies.set(REFRESH_COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
