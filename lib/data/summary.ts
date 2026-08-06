@@ -48,7 +48,7 @@ export async function getMonthlySummary(userId: string, month: string): Promise<
   )();
 }
 
-async function fetchMonthlySummary(
+export async function fetchMonthlySummary(
   userId: string,
   month: string
 ): Promise<MonthlySummary> {
@@ -160,7 +160,7 @@ export async function getYearlySummary(userId: string, year: number): Promise<Ye
   )();
 }
 
-async function fetchYearlySummary(userId: string, year: number): Promise<YearlySummary> {
+export async function fetchYearlySummary(userId: string, year: number): Promise<YearlySummary> {
   const start = new Date(Date.UTC(year, 0, 1));
   const end = new Date(Date.UTC(year + 1, 0, 1));
   const uid = new Types.ObjectId(userId);

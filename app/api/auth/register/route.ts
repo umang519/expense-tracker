@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { RegisterSchema } from "@/lib/validation";
 import { sendEmail, otpEmail } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
 import Category from "@/models/Category";
 
@@ -23,6 +24,14 @@ function hashOtp(otp: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const allowed = await checkRateLimit("register", getClientIp(req), 5, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json();
   const parsed = RegisterSchema.safeParse(body);
   if (!parsed.success) {

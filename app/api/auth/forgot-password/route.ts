@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { sendEmail, otpEmail } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
 
 function generateOtp() {
@@ -13,6 +14,14 @@ function hashOtp(otp: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const allowed = await checkRateLimit("forgot-password", getClientIp(req), 5, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json();
   const email = (body.email ?? "").trim().toLowerCase();
 

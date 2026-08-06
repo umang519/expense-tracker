@@ -587,20 +587,31 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
         </a>
       </section>
 
-      {/* Sign out */}
+      {/* Sign out — neutral styling, since this isn't destructive like account deletion */}
       <section className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
         <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
           Account
         </h2>
         <button
           onClick={() => setSignOutOpen(true)}
-          className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors"
+          className="w-full py-2.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium transition-colors"
         >
           Sign out
         </button>
+      </section>
+
+      {/* Delete account — its own card, kept well away from Sign out so the
+          two aren't a mis-tap apart. */}
+      <section className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/50 p-5">
+        <h2 className="text-sm font-semibold text-red-500 dark:text-red-400 uppercase tracking-wide mb-1">
+          Delete Account
+        </h2>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          This permanently removes your account and all associated data. This action cannot be undone.
+        </p>
         <button
           onClick={() => setDeleteAccountOpen(true)}
-          className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors mt-2"
+          className="w-full py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/60 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-medium transition-colors"
         >
           Delete account
         </button>

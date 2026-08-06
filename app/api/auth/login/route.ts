@@ -11,10 +11,19 @@ import {
   hashRefreshToken,
 } from "@/lib/auth";
 import { LoginSchema } from "@/lib/validation";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
 import RefreshToken from "@/models/RefreshToken";
 
 export async function POST(req: NextRequest) {
+  const allowed = await checkRateLimit("login", getClientIp(req), 10, 15 * 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json();
   const parsed = LoginSchema.safeParse(body);
   if (!parsed.success) {
