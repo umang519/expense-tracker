@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import Expense from "@/models/Expense";
+import Transaction from "@/models/Transaction";
 import { Types } from "mongoose";
 
 export async function GET(req: NextRequest) {
@@ -65,6 +66,32 @@ export async function GET(req: NextRequest) {
       return [date, category, e.amount, e.note ?? ""].map(csvEscape).join(",");
     }),
   ];
+
+  // Yearly exports also include major transactions as a separate section —
+  // month-scoped/filtered exports (per-month links, filtered downloads) stay
+  // expenses-only to match their existing narrower scope.
+  if (!month && yearParam && /^\d{4}$/.test(yearParam)) {
+    const y = Number(yearParam);
+    const transactions = await Transaction.find({
+      userId: new Types.ObjectId(auth.userId),
+      date: { $gte: new Date(Date.UTC(y, 0, 1)), $lt: new Date(Date.UTC(y + 1, 0, 1)) },
+    })
+      .sort({ date: 1, _id: 1 })
+      .lean();
+
+    if (transactions.length > 0) {
+      rows.push("", "Major Transactions");
+      rows.push(["Date", "Type", "Description", "Amount", "Investment"].map(csvEscape).join(","));
+      rows.push(
+        ...transactions.map((t) => {
+          const date = new Date(t.date).toISOString().substring(0, 10);
+          return [date, t.type, t.description, t.amount, t.isInvestment ? "Yes" : "No"]
+            .map(csvEscape)
+            .join(",");
+        })
+      );
+    }
+  }
 
   const csv = rows.join("\r\n");
   const filename = month
