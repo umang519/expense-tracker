@@ -100,4 +100,6 @@ Reports/aggregation → Major transactions → polish/PWA → deploy. See ROADMA
 ```
 MONGODB_URI=
 JWT_SECRET=
+SENTRY_DSN=              # error monitoring (server/edge) — unset locally is fine, SDK no-ops
+NEXT_PUBLIC_SENTRY_DSN=  # error monitoring (client)
 ```

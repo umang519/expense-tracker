@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { sendEmail, otpEmail } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
 
 function generateOtp() {
@@ -16,6 +17,14 @@ function hashOtp(otp: string) {
 export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const allowed = await checkRateLimit("email-change", getClientIp(req), 5, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
 
   const body = await req.json();
   const newEmail = (body.email ?? "").trim().toLowerCase();

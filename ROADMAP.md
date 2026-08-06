@@ -257,11 +257,31 @@ Steps 1–2 can ship together. Steps 3–4 depend on Step 1 but are independent 
 - Service worker for offline viewing of recent data.
 - Queue expenses entered offline and sync when back online.
 
-### Phase 18 — Quality & operations
-- Unit tests for aggregation logic and auth helpers.
-- A couple of end-to-end flows (login → add expense → view dashboard).
-- Error monitoring (e.g. Sentry) so production issues surface.
-- Basic API rate limiting.
+### Phase 18 — Quality & operations ✅ COMPLETE
+- **Unit tests (Vitest):** `lib/auth.ts`, `lib/format.ts`, `lib/validation.ts`, and `lib/push.ts`'s
+  pure functions each have a co-located `*.test.ts`. `lib/data/summary.ts`'s aggregation pipelines
+  (`fetchMonthlySummary`/`fetchYearlySummary`, now exported) are covered by
+  `tests/integration/summary.test.ts` against a real `mongodb-memory-server` instance rather than
+  mocked Mongoose, since aggregation correctness is the invariant CLAUDE.md rule 5 depends on.
+  `tests/setup.ts` stubs env vars read at module-load time. `npm run test` / `npm run test:watch`.
+- **E2E flows (Playwright):** `tests/e2e/login-add-expense.spec.ts` (login → add expense →
+  dashboard total updates) and `tests/e2e/expense-crud.spec.ts` (add → edit → delete), run against
+  a dedicated test database via `.env.test.local` (see `.env.test.local.example`) — never against
+  the real Atlas DB. `global-setup.ts` seeds a pre-verified fixed test user directly via Mongoose
+  (registration needs real email OTP, which can't be automated). Fixed a real accessibility gap
+  found along the way: the login page's Email/Password `<label>`s had no `id`/`htmlFor` pairing.
+  `npm run test:e2e`.
+- **Error monitoring (Sentry):** `instrumentation.ts` + `instrumentation-client.ts` +
+  `sentry.server.config.ts` + `sentry.edge.config.ts` (covers `proxy.ts`) + `app/global-error.tsx`.
+  `onRequestError` auto-captures uncaught Route Handler/Server Component exceptions — no per-route
+  try/catch needed. `next.config.ts` wrapped with `withSentryConfig`. `SENTRY_DSN` /
+  `NEXT_PUBLIC_SENTRY_DSN` are unset locally by design (SDK no-ops safely); production build
+  verified clean with no `SENTRY_AUTH_TOKEN` set (source-map upload just skips with a warning).
+- **API rate limiting:** MongoDB-backed (no new Redis/Upstash dependency — `models/RateLimitHit.ts`
+  uses the same TTL-index pattern as `RefreshToken`), fixed-window counter via one atomic
+  `findOneAndUpdate` upsert in `lib/rateLimit.ts`. Applied by IP to the abuse-prone auth routes:
+  register (5/hr), login (10/15min), forgot-password (5/hr), reset-password (10/15min),
+  resend-verification (5/hr), email-change/request (5/hr).
 
 ### Phase 19 — Settings & account management polish
 Triaged from `docs/SETTINGS.SUGGESTIONS.MD`. Now that other users besides the owner are on the
