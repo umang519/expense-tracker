@@ -473,12 +473,21 @@ competitor.
   renaming it would break the already-shared PR #24 link and is a separate, bigger decision than
   in-app branding; revisit only if explicitly wanted later.
 
-### Phase 25 — Onboarding polish ⏳ NOT STARTED
+### Phase 25 — Onboarding polish ✅ COMPLETE
 
-- Empty-state / first-run polish on the dashboard for a brand-new account (4 seed categories exist,
-  zero expenses) — a "log your first expense" prompt rather than a blank chart.
-- Optional dismissible "getting started" checklist, same localStorage read/write pattern as
-  `lib/theme.ts`, no new backend needed.
+- `app/(app)/dashboard/page.tsx` now runs a lightweight `Expense.exists({ userId })` check alongside
+  the existing parallel queries to derive `isNewUser` (zero expenses ever — not just this month) and
+  passes it down.
+- `components/MonthSummary.tsx`: the `total === 0` empty state now branches — new users get a "Log
+  your first expense" prompt with a CTA that opens `AddExpenseSheet` directly (self-contained, same
+  pattern as `AddExpenseButton`); returning users with just an empty month keep the original plain
+  "Nothing spent this month yet" message, so existing users don't get a misleading "first expense"
+  message on a quiet month.
+- New `components/GettingStartedChecklist.tsx`: dismissible card (links to set a budget, turn on daily
+  reminders), shown only when `isNewUser` — existing users never see it, so there's no need to
+  backfill a "dismissed" flag for anyone already using the app. Dismiss state persists via
+  `localStorage`, read through `useSyncExternalStore` (same hydration-safe pattern as `ThemeToggle`)
+  rather than `useEffect` + `setState`, which the project's lint config forbids.
 
 ### Phase 26 — Minimal admin visibility ⏳ NOT STARTED
 
