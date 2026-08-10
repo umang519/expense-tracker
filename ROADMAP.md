@@ -440,7 +440,7 @@ optional once strangers are signing up and storing financial data, even for free
   `components/SettingsForm.tsx` — app name + version + privacy note + "View source on GitHub" link,
   now that the repo is public.
 
-### Phase 23 — Infra cost & abuse-ceiling review ⏳ NOT STARTED
+### Phase 23 — Infra cost & abuse-ceiling review ✅ COMPLETE
 
 **Context:** with no paywall, there's no natural brake on signups or usage — worth knowing the
 free-tier ceilings before "accessible to everyone" turns into a surprise bill or a full database.

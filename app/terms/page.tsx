@@ -19,7 +19,7 @@ export default function TermsOfServicePage() {
         Expense Tracker lets you record expenses, categorize them, log major transactions, and view
         summaries and reports. It&apos;s free to use, and its source code is publicly available under
         the{" "}
-        <a href="https://github.com/umang519/expense-tracker/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
+        <a href="https://github.com/umang519/expense-tracker/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">
           MIT License
         </a>.
       </p>

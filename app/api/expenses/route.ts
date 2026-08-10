@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { ExpenseCreateSchema } from "@/lib/validation";
 import { getExpensesForMonth } from "@/lib/data/expenses";
 import { summaryCacheTag } from "@/lib/data/summary";
@@ -27,6 +28,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await getUserFromRequest(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const allowed = await checkRateLimit("expenses", auth.userId, 200, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+  }
 
   const body = await req.json();
   const parsed = ExpenseCreateSchema.safeParse(body);
