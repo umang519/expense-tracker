@@ -66,10 +66,10 @@ export async function POST(req: NextRequest) {
   );
 
   try {
-    const { html, text } = otpEmail(otp, "Enter this code to verify your email and activate your Expense Tracker account.");
+    const { html, text } = otpEmail(otp, "Enter this code to verify your email and activate your Outlay account.");
     await sendEmail({
       to: user.email,
-      subject: "Verify your email — Expense Tracker",
+      subject: "Verify your email — Outlay",
       html,
       text,
     });

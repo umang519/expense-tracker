@@ -123,7 +123,7 @@ self.addEventListener("message", (event) => {
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
-    self.registration.showNotification(data.title ?? "Expense Tracker", {
+    self.registration.showNotification(data.title ?? "Outlay", {
       body: data.body ?? "Don't forget to log today's expenses!",
       icon: "/icon-192.png",
       badge: "/icon-192.png",

@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const { html, text } = otpEmail(otp, "Here is your new verification code for Expense Tracker.");
-    await sendEmail({ to: user.email, subject: "New verification code — Expense Tracker", html, text });
+    const { html, text } = otpEmail(otp, "Here is your new verification code for Outlay.");
+    await sendEmail({ to: user.email, subject: "New verification code — Outlay", html, text });
   } catch {
     return NextResponse.json({ error: "Failed to send email. Please try again." }, { status: 500 });
   }

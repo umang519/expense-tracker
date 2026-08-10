@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const { html, text } = otpEmail(otp, "Use this code to reset your Expense Tracker password. If you didn't request this, you can safely ignore this email.");
-    await sendEmail({ to: user.email, subject: "Reset your password — Expense Tracker", html, text });
+    const { html, text } = otpEmail(otp, "Use this code to reset your Outlay password. If you didn't request this, you can safely ignore this email.");
+    await sendEmail({ to: user.email, subject: "Reset your password — Outlay", html, text });
   } catch {
     return NextResponse.json({ error: "Failed to send email. Please try again." }, { status: 500 });
   }

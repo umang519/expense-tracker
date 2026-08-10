@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import LegalPageLayout from "@/components/LegalPageLayout";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — Expense Tracker",
-  description: "The terms for using Expense Tracker, a free and open-source app.",
+  title: "Terms of Service — Outlay",
+  description: "The terms for using Outlay, a free and open-source app.",
 };
 
 export default function TermsOfServicePage() {
   return (
     <LegalPageLayout title="Terms of Service" updated="10 August 2026">
       <p>
-        Expense Tracker is a free, open-source expense-tracking app, provided as-is with no charge
+        Outlay is a free, open-source expense-tracking app, provided as-is with no charge
         and no paid tiers. By creating an account, you agree to the terms below.
       </p>
 
       <h2>The service</h2>
       <p>
-        Expense Tracker lets you record expenses, categorize them, log major transactions, and view
+        Outlay lets you record expenses, categorize them, log major transactions, and view
         summaries and reports. It&apos;s free to use, and its source code is publicly available under
         the{" "}
         <a href="https://github.com/umang519/expense-tracker/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">
