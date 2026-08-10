@@ -71,6 +71,8 @@ RESEND_API_KEY=         # for OTP / password-reset emails
 CLOUDINARY_CLOUD_NAME=  # for profile picture uploads
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+ADMIN_EMAILS=           # optional, comma-separated — self-promotes matching accounts to
+                         # role: "admin" on next login/verify/refresh, unlocking /admin
 ```
 
 Then run the dev server:

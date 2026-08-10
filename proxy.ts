@@ -3,7 +3,15 @@ import { verifyJWT, REFRESH_COOKIE_NAME } from "@/lib/auth";
 
 export async function proxy(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
-  if (token && (await verifyJWT(token))) {
+  const payload = token ? await verifyJWT(token) : null;
+  if (payload) {
+    // Edge runtime can't hit Mongoose to re-check role, so the claim has to
+    // travel in the token — same reasoning as the refresh-token flow. A stale
+    // pre-refresh token without a role claim fails closed (redirects away),
+    // not open.
+    if (req.nextUrl.pathname.startsWith("/admin") && payload.role !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   }
 
@@ -32,5 +40,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/month/:path*", "/reports/:path*", "/categories/:path*", "/transactions/:path*", "/settings/:path*"],
+  matcher: ["/dashboard/:path*", "/month/:path*", "/reports/:path*", "/categories/:path*", "/transactions/:path*", "/settings/:path*", "/admin/:path*"],
 };
