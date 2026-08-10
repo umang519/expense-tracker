@@ -627,8 +627,33 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
           <span className="text-gray-400 dark:text-gray-500 font-mono">v{appVersion}</span>
         </div>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-          Your data is private to your account — no one else can see or access it.
+          Your data is private to your account — no one else can see or access it. Expense Tracker is
+          free and open source.
         </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
+          <a href="/privacy" className="text-violet-600 dark:text-violet-400 hover:underline">
+            Privacy Policy
+          </a>
+          <a href="/terms" className="text-violet-600 dark:text-violet-400 hover:underline">
+            Terms of Service
+          </a>
+          <a
+            href="https://github.com/umang519/expense-tracker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-600 dark:text-violet-400 hover:underline"
+          >
+            View source on GitHub
+          </a>
+          <a
+            href="https://github.com/umang519/expense-tracker/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-violet-600 dark:text-violet-400 hover:underline"
+          >
+            Support
+          </a>
+        </div>
       </section>
 
       <SignOutModal isOpen={signOutOpen} onClose={() => setSignOutOpen(false)} />

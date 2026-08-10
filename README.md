@@ -144,3 +144,13 @@ The MVP (auth → categories → expenses → dashboard → reports → transact
 ## 🤝 Contributing
 
 Found a bug or have an idea? Open an issue or a PR. Check [ROADMAP.md](./ROADMAP.md) for planned work and [docs/IDEAS.md](./docs/IDEAS.md) for ideas under consideration before starting something large, so effort isn't duplicated.
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](./LICENSE). Free to use, modify, and self-host.
+
+## 🔐 Privacy & Terms
+
+In-app policies live at `/privacy` and `/terms` once deployed. See [`app/privacy/page.tsx`](./app/privacy/page.tsx) and [`app/terms/page.tsx`](./app/terms/page.tsx).
