@@ -418,6 +418,79 @@ full: `RefreshToken` model → `/api/auth/refresh` → "remember me" checkbox on
 the refresh cookie → verify-email issuing it too → logout/delete-account revocation →
 `proxy.ts` silent-refresh. Both halves are now shipped.
 
+### Phase 22 — Open-source readiness (license, public repo, legal basics) ✅ COMPLETE
+
+**Context:** the app is moving from "personal project" to "free, open-source, publicly accessible
+tool" (decided 2026-08-10 — see `PRODUCTIZATION_PLAN.md`). The GitHub repo is still private and there
+is no `LICENSE`, `/privacy`, `/terms`, or support contact anywhere in the app — none of that is
+optional once strangers are signing up and storing financial data, even for free.
+
+- Add a root `LICENSE` file — MIT is the default recommendation for a solo OSS project; confirm with
+  the user before implementing this phase in case they want a different license.
+- Flip the GitHub repo from private to public. Hard-to-reverse and visible externally — confirm
+  explicitly with the user when this phase starts, don't do it silently mid-implementation.
+- New public pages `app/privacy/page.tsx` and `app/terms/page.tsx` (outside `proxy.ts`'s matcher, so
+  reachable without auth) — plain-language Privacy Policy (what's collected: email,
+  expenses/categories/transactions, optional avatar; why; retention; that account deletion already
+  cascades — reuse the Phase 19b delete-account story) and a short OSS-style Terms (provided as-is,
+  no warranty).
+- Support contact: once the repo is public, GitHub Issues doubles as the support channel — link it
+  from `/privacy`, `/terms`, and the About section below. No new infra needed.
+- Un-blocks **Phase 19d** (currently ON HOLD above): finish the About section in
+  `components/SettingsForm.tsx` — app name + version + privacy note + "View source on GitHub" link,
+  now that the repo is public.
+
+### Phase 23 — Infra cost & abuse-ceiling review ⏳ NOT STARTED
+
+**Context:** with no paywall, there's no natural brake on signups or usage — worth knowing the
+free-tier ceilings before "accessible to everyone" turns into a surprise bill or a full database.
+
+- New `docs/INFRA_LIMITS.md`: document Vercel Hobby-plan ceilings (bandwidth, function invocations,
+  the once-daily cron limit already surfaced in Phase 21) and Atlas M0 free-tier ceilings (512MB
+  storage, 500 connections), plus where to watch usage (Vercel dashboard, Atlas alerts).
+- Extend `lib/rateLimit.ts` (Phase 18's MongoDB-backed atomic-upsert pattern, currently auth routes
+  only) to the write-heavy data routes (`expenses`, `transactions`, `recurring`, `categories` POST) —
+  same pattern, new scopes, no new infra — as a cheap backstop against runaway storage growth from
+  abuse or bots.
+
+### Phase 24 — Branding + landing page ⏳ NOT STARTED
+
+**Needs a product name decision before starting** — currently generically "Expense Tracker"
+everywhere (`app/layout.tsx`, `app/manifest.ts`, `package.json`, email templates in `lib/email.ts` and
+the auth routes, `public/sw.js`, `public/offline.html`, `components/SettingsForm.tsx`).
+
+- `app/page.tsx` currently just redirects (`/dashboard` if logged in, else `/login`) — no landing page
+  exists today. Change the logged-out path to render a real marketing/landing page (value prop,
+  feature highlights, CTAs to `/login` and `/register`) instead of an immediate redirect; keep the
+  logged-in → `/dashboard` redirect as-is.
+- `app/layout.tsx`: update `title`/`description` for the new name, add `openGraph`/`twitter` metadata
+  (currently missing entirely).
+- Mechanical rename sweep across the files listed above once the name is picked.
+
+### Phase 25 — Onboarding polish ⏳ NOT STARTED
+
+- Empty-state / first-run polish on the dashboard for a brand-new account (4 seed categories exist,
+  zero expenses) — a "log your first expense" prompt rather than a blank chart.
+- Optional dismissible "getting started" checklist, same localStorage read/write pattern as
+  `lib/theme.ts`, no new backend needed.
+
+### Phase 26 — Minimal admin visibility ⏳ NOT STARTED
+
+- `models/User.ts`: add `role: "user" | "admin"` (default `"user"`).
+- Bootstrap the first admin via an `ADMIN_EMAILS` env var allowlist checked at login/JWT-issue time
+  (`lib/auth.ts`) — avoids a manual DB write per deploy; document in README's env var list.
+- `proxy.ts`: extend `matcher` to cover `/admin/:path*`; gate on `role` baked into the JWT payload —
+  the Edge runtime can't hit Mongoose directly, so the claim has to travel in the token, same reasoning
+  as the existing refresh-token flow.
+- New `app/(app)/admin/page.tsx` + `app/api/admin/stats/route.ts` (role-checked server-side too, not
+  just at the proxy) — signups over time, active-user count, reusing the aggregation style already in
+  `lib/data/summary.ts`.
+
+### Phase 27 — Billing / Plan model — parked
+
+No new work. Kept only as a pointer to `PRODUCTIZATION_PLAN.md`'s "where billing/gating would plug in"
+notes — revisit only if the open-source decision changes.
+
 ---
 
 ## 8. Security Checklist (keep enforcing)
