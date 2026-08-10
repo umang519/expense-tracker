@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
+import AddExpenseSheet from "@/components/AddExpenseSheet";
 
 // Recharts is a large dependency that's only needed once summary data has
 // loaded; dynamic-importing it keeps it out of the initial JS payload for
@@ -60,9 +62,11 @@ interface Props {
   month: string;
   currency?: string;
   initialData?: Summary;
+  isNewUser?: boolean;
 }
 
-export default function MonthSummary({ month, currency = "INR", initialData }: Props) {
+export default function MonthSummary({ month, currency = "INR", initialData, isNewUser = false }: Props) {
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["summary", "monthly", month],
     queryFn: () => fetchSummary(month),
@@ -88,6 +92,25 @@ export default function MonthSummary({ month, currency = "INR", initialData }: P
   }
 
   if (!data || data.total === 0) {
+    if (isNewUser) {
+      return (
+        <div className="mb-4 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-violet-200 dark:border-violet-800/60 p-7 text-center">
+          <p className="text-gray-700 dark:text-gray-300 text-sm font-medium mb-1">
+            No expenses logged yet
+          </p>
+          <p className="text-gray-400 dark:text-gray-500 text-xs mb-4">
+            Log your first one — it takes under 5 seconds.
+          </p>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+          >
+            Log your first expense
+          </button>
+          <AddExpenseSheet isOpen={addOpen} onClose={() => setAddOpen(false)} />
+        </div>
+      );
+    }
     return (
       <div className="mb-4 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-7 text-center">
         <p className="text-gray-400 dark:text-gray-500 text-sm">Nothing spent this month yet</p>

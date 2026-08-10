@@ -3,11 +3,13 @@ import { redirect } from "next/navigation";
 import { verifyJWT } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
+import Expense from "@/models/Expense";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import MonthSummary from "@/components/MonthSummary";
 import ExpenseList from "@/components/ExpenseList";
 import RecurringLoggedBanner from "@/components/RecurringLoggedBanner";
+import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { currentMonth, monthLabel } from "@/lib/format";
 import { getMonthlySummary } from "@/lib/data/summary";
 import { getExpensesForMonth, getCategoriesForUser } from "@/lib/data/expenses";
@@ -30,11 +32,13 @@ export default async function DashboardPage() {
   // Fetch above-the-fold data on the server (in parallel) so the LCP content
   // ships with the initial HTML instead of waiting on a client-side fetch
   // after hydration.
-  const [summary, expenses, categories] = await Promise.all([
+  const [summary, expenses, categories, hasAnyExpense] = await Promise.all([
     getMonthlySummary(payload.sub, month),
     getExpensesForMonth(payload.sub, month),
     getCategoriesForUser(payload.sub),
+    Expense.exists({ userId: payload.sub }),
   ]);
+  const isNewUser = !hasAnyExpense;
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 p-4">
@@ -58,8 +62,11 @@ export default async function DashboardPage() {
         {/* Auto-log notice — appears when recurring entries were generated on this open */}
         <RecurringLoggedBanner />
 
+        {/* Dismissible first-run guide — only ever shown to accounts with zero expenses ever */}
+        {isNewUser && <GettingStartedChecklist />}
+
         {/* Monthly summary: total + donut + category bars */}
-        <MonthSummary month={month} currency={currency} initialData={summary} />
+        <MonthSummary month={month} currency={currency} initialData={summary} isNewUser={isNewUser} />
 
         {/* Expense list grouped by day */}
         <ExpenseList
