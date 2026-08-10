@@ -1,4 +1,4 @@
-# Expense Tracker — Project Roadmap
+# Outlay — Project Roadmap
 
 A mobile-first web app to replace a manual expense spreadsheet. Lets any user sign up,
 record daily expenses across their own custom categories, log major one-off
@@ -453,19 +453,25 @@ free-tier ceilings before "accessible to everyone" turns into a surprise bill or
   same pattern, new scopes, no new infra — as a cheap backstop against runaway storage growth from
   abuse or bots.
 
-### Phase 24 — Branding + landing page ⏳ NOT STARTED
+### Phase 24 — Branding + landing page ✅ COMPLETE
 
-**Needs a product name decision before starting** — currently generically "Expense Tracker"
-everywhere (`app/layout.tsx`, `app/manifest.ts`, `package.json`, email templates in `lib/email.ts` and
-the auth routes, `public/sw.js`, `public/offline.html`, `components/SettingsForm.tsx`).
+**Name: Outlay.** Picked from the app's core value prop (fast mobile expense entry, budgets, reports)
+while avoiding overlap with existing personal-finance apps (Spendee, Splitwise, Mint, YNAB, Walnut,
+ET Money, etc.) — plain English word for "money spent," short, no name-based brand confusion with a
+competitor.
 
-- `app/page.tsx` currently just redirects (`/dashboard` if logged in, else `/login`) — no landing page
-  exists today. Change the logged-out path to render a real marketing/landing page (value prop,
-  feature highlights, CTAs to `/login` and `/register`) instead of an immediate redirect; keep the
-  logged-in → `/dashboard` redirect as-is.
-- `app/layout.tsx`: update `title`/`description` for the new name, add `openGraph`/`twitter` metadata
-  (currently missing entirely).
-- Mechanical rename sweep across the files listed above once the name is picked.
+- `app/page.tsx` now renders a real landing page for logged-out visitors (value prop, feature
+  highlights, CTAs to `/login` and `/register`, links to `/privacy`/`/terms`/GitHub) instead of an
+  immediate redirect to `/login`; logged-in visitors still redirect straight to `/dashboard`.
+- `app/layout.tsx`: `title`/`description` updated for the new name, `openGraph`/`twitter` metadata
+  added (previously missing entirely), `appleWebApp.title` updated.
+- Mechanical rename sweep: `app/manifest.ts`, `package.json` (+ lockfile), email templates
+  (`lib/email.ts` and the register/forgot-password/resend-verification/email-change auth routes),
+  push notification payload (`lib/push.ts`), `public/sw.js`, `public/offline.html`,
+  `components/SettingsForm.tsx`, `components/LegalPageLayout.tsx`, `/privacy` + `/terms`, README.
+- The GitHub repo slug (`github.com/umang519/expense-tracker`) was deliberately left unchanged —
+  renaming it would break the already-shared PR #24 link and is a separate, bigger decision than
+  in-app branding; revisit only if explicitly wanted later.
 
 ### Phase 25 — Onboarding polish ⏳ NOT STARTED
 

@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import LegalPageLayout from "@/components/LegalPageLayout";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Expense Tracker",
-  description: "What data Expense Tracker collects, why, and how to get it deleted.",
+  title: "Privacy Policy — Outlay",
+  description: "What data Outlay collects, why, and how to get it deleted.",
 };
 
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout title="Privacy Policy" updated="10 August 2026">
       <p>
-        Expense Tracker is a free, open-source expense-tracking app. This page explains what data
+        Outlay is a free, open-source expense-tracking app. This page explains what data
         we collect when you use it, why, and what control you have over it.
       </p>
 

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const { html, text } = otpEmail(otp, `Enter this code to confirm ${newEmail} as your new email address.`);
     await sendEmail({
       to: newEmail,
-      subject: "Your Expense Tracker verification code",
+      subject: "Your Outlay verification code",
       html,
       text,
     });

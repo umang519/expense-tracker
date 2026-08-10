@@ -6,8 +6,8 @@ import NotificationFallbackTrigger from "@/components/NotificationFallbackTrigge
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Expense Tracker",
-  description: "Track your daily expenses — fast, mobile-first, private.",
+  title: "Outlay — Track expenses in seconds",
+  description: "A free, open-source expense tracker. Fast mobile entry, budgets, reports, and offline support.",
   manifest: "/manifest.webmanifest",
   icons: {
     apple: "/apple-touch-icon.png",
@@ -15,7 +15,17 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Expenses",
+    title: "Outlay",
+  },
+  openGraph: {
+    title: "Outlay — Track expenses in seconds",
+    description: "A free, open-source expense tracker. Fast mobile entry, budgets, reports, and offline support.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Outlay — Track expenses in seconds",
+    description: "A free, open-source expense tracker. Fast mobile entry, budgets, reports, and offline support.",
   },
 };
 

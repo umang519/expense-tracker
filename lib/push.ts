@@ -4,7 +4,7 @@ import PushSubscription from "@/models/PushSubscription";
 import NotificationRun from "@/models/NotificationRun";
 
 const PAYLOAD = JSON.stringify({
-  title: "Expense Tracker",
+  title: "Outlay",
   body: "Don't forget to log today's expenses! 📝",
 });
 

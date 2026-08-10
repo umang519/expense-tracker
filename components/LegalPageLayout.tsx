@@ -16,7 +16,7 @@ export default function LegalPageLayout({
           href="/"
           className="text-sm text-violet-600 dark:text-violet-400 hover:underline"
         >
-          ← Back to Expense Tracker
+          ← Back to Outlay
         </Link>
 
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4">

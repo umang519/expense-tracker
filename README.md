@@ -1,4 +1,4 @@
-# 💸 Expense Tracker
+# 💸 Outlay
 
 A mobile-first, multi-user expense tracker — built to replace a manual spreadsheet and actually be *faster* than opening Excel. Log an expense from your phone in under 5 seconds, track budgets, see monthly/yearly trends, and get a nudge when you forget to log for the day.
 

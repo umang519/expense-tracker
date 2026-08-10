@@ -25,14 +25,14 @@ export async function sendEmail({
 }) {
   const transporter = createTransport();
   await transporter.sendMail({
-    from: `"Expense Tracker" <${process.env.SMTP_USERNAME}>`,
+    from: `"Outlay" <${process.env.SMTP_USERNAME}>`,
     to,
     subject,
     html,
     text,
     headers: {
       "X-Priority": "1",
-      "X-Mailer": "Expense Tracker App",
+      "X-Mailer": "Outlay App",
     },
   });
 }
@@ -40,7 +40,7 @@ export async function sendEmail({
 export function otpEmail(otp: string, purpose: string): { html: string; text: string } {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-      <h2 style="margin:0 0 8px;font-size:20px;color:#111">Expense Tracker</h2>
+      <h2 style="margin:0 0 8px;font-size:20px;color:#111">Outlay</h2>
       <p style="margin:0 0 24px;color:#555;font-size:15px">${purpose}</p>
       <div style="background:#f5f3ff;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
         <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#7c3aed">${otp}</span>
@@ -49,6 +49,6 @@ export function otpEmail(otp: string, purpose: string): { html: string; text: st
       <p style="margin:0;color:#888;font-size:13px">If you did not request this, you can safely ignore this email. No action is needed.</p>
     </div>
   `;
-  const text = `Expense Tracker\n\n${purpose}\n\nYour verification code: ${otp}\n\nThis code expires in 15 minutes.\n\nIf you did not request this, ignore this email.`;
+  const text = `Outlay\n\n${purpose}\n\nYour verification code: ${otp}\n\nThis code expires in 15 minutes.\n\nIf you did not request this, ignore this email.`;
   return { html, text };
 }
