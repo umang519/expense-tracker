@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { TransactionCreateSchema } from "@/lib/validation";
 import { summaryCacheTag } from "@/lib/data/summary";
 import Transaction from "@/models/Transaction";
@@ -29,6 +30,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await getUserFromRequest(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const allowed = await checkRateLimit("transactions", auth.userId, 100, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+  }
 
   const body = await req.json();
   const parsed = TransactionCreateSchema.safeParse(body);

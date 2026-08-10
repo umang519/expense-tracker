@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { CategoryCreateSchema } from "@/lib/validation";
 import { getCategoriesForUser } from "@/lib/data/expenses";
 import Category from "@/models/Category";
@@ -16,6 +17,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await getUserFromRequest(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const allowed = await checkRateLimit("categories", auth.userId, 30, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+  }
 
   const body = await req.json();
   const parsed = CategoryCreateSchema.safeParse(body);

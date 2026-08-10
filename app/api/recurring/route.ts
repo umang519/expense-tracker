@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { RecurringExpenseCreateSchema } from "@/lib/validation";
 import RecurringExpense from "@/models/RecurringExpense";
 import Category from "@/models/Category";
@@ -23,6 +24,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await getUserFromRequest(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const allowed = await checkRateLimit("recurring", auth.userId, 30, 60 * 60);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
+  }
 
   const body = await req.json();
   const parsed = RecurringExpenseCreateSchema.safeParse(body);
