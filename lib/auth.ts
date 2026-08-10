@@ -19,9 +19,12 @@ export async function verifyPassword(
 
 // ── JWT helpers (using Web Crypto so this works in Edge runtime too) ──────────
 
+export type UserRole = "user" | "admin";
+
 interface JWTPayload {
   sub: string; // userId
   email: string;
+  role: UserRole;
   iat: number;
   exp: number;
 }
@@ -99,15 +102,29 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
 
 export async function getUserFromRequest(
   req: NextRequest
-): Promise<{ userId: string; email: string } | null> {
+): Promise<{ userId: string; email: string; role: UserRole } | null> {
   const token = req.cookies.get(COOKIE_NAME)?.value;
   if (!token) return null;
   const payload = await verifyJWT(token);
   if (!payload) return null;
-  return { userId: payload.sub, email: payload.email };
+  // Falls back to "user" for tokens issued before the role claim existed —
+  // self-heals within ACCESS_TOKEN_TTL_SECONDS as everyone re-logs-in/refreshes.
+  return { userId: payload.sub, email: payload.email, role: payload.role ?? "user" };
 }
 
 export { COOKIE_NAME };
+
+// ── Admin bootstrap ────────────────────────────────────────────────────────
+// Comma-separated allowlist checked at login/verify-email/refresh time (see
+// lib/adminAccess.ts) so promoting the first admin(s) is just an env var, not
+// a manual Mongo shell write. Pure/Edge-safe — no DB access here.
+export function isAdminEmail(email: string): boolean {
+  const allowlist = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allowlist.includes(email.toLowerCase());
+}
 
 // ── Refresh tokens ("remember me") ────────────────────────────────────────────
 // Access JWT stays short-lived; a separate opaque refresh token (stored hashed

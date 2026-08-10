@@ -22,6 +22,7 @@ export default async function SettingsPage() {
     name: user.name ?? "",
     currency: user.currency ?? "INR",
     avatarUrl: user.avatarUrl,
+    isAdmin: user.role === "admin",
   };
 
   return (

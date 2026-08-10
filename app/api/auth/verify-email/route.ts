@@ -10,6 +10,7 @@ import {
   generateRefreshToken,
   hashRefreshToken,
 } from "@/lib/auth";
+import { resolveRole } from "@/lib/adminAccess";
 import User from "@/models/User";
 import RefreshToken from "@/models/RefreshToken";
 
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
     $unset: { verifyOtp: 1, verifyOtpExpiresAt: 1 },
   });
 
-  const token = await signJWT({ sub: user._id.toString(), email: user.email });
+  const role = await resolveRole(user);
+  const token = await signJWT({ sub: user._id.toString(), email: user.email, role });
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(COOKIE_NAME, token, {

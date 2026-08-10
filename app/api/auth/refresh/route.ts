@@ -9,6 +9,7 @@ import {
   generateRefreshToken,
   hashRefreshToken,
 } from "@/lib/auth";
+import { resolveRole } from "@/lib/adminAccess";
 import User from "@/models/User";
 import RefreshToken from "@/models/RefreshToken";
 
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     return response;
   }
 
-  const user = await User.findById(existing.userId).select("email");
+  const user = await User.findById(existing.userId).select("email role");
   if (!user) {
     await RefreshToken.deleteOne({ _id: existing._id });
     const response = NextResponse.json({ error: "User not found" }, { status: 401 });
@@ -70,7 +71,8 @@ export async function POST(req: NextRequest) {
     expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000),
   });
 
-  const accessToken = await signJWT({ sub: user._id.toString(), email: user.email });
+  const role = await resolveRole(user);
+  const accessToken = await signJWT({ sub: user._id.toString(), email: user.email, role });
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(COOKIE_NAME, accessToken, {

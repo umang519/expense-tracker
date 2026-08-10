@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth";
 import { LoginSchema } from "@/lib/validation";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { resolveRole } from "@/lib/adminAccess";
 import User from "@/models/User";
 import RefreshToken from "@/models/RefreshToken";
 
@@ -53,9 +54,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const role = await resolveRole(user);
   const token = await signJWT({
     sub: user._id.toString(),
     email: user.email,
+    role,
   });
 
   const response = NextResponse.json({
