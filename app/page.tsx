@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifyJWT } from "@/lib/auth";
+import AuthedHomeRedirect from "@/components/AuthedHomeRedirect";
 
 const FEATURES = [
   {
@@ -25,8 +25,12 @@ const FEATURES = [
 export default async function RootPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
+  // Deliberately not next/navigation's redirect() here: this route is the
+  // PWA's start_url, and redirect() would send an HTTP redirect on the very
+  // first request — the crash-on-launch case AuthedHomeRedirect exists to
+  // avoid. See its comment for the full story.
   if (token && (await verifyJWT(token))) {
-    redirect("/dashboard");
+    return <AuthedHomeRedirect />;
   }
 
   return (

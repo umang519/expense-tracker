@@ -19,9 +19,11 @@ export default function manifest(): MetadataRoute.Manifest {
     // Deliberately "/" and NOT "/dashboard": some Android WebAPK versions have
     // had real bugs failing to reliably follow a redirect on cold launch, and
     // "/dashboard" always 307-redirects to "/login" for a logged-out session —
-    // exactly the state right after a fresh install. "/" already returns a
-    // real 200 landing page when logged out (only redirecting to /dashboard
-    // once authenticated), so it's the safer start_url for a WebAPK.
+    // exactly the state right after a fresh install. "/" (app/page.tsx) always
+    // returns a real 200, for both logged-out and logged-in sessions — an
+    // authenticated visitor gets redirected to /dashboard client-side
+    // (AuthedHomeRedirect) rather than via an HTTP redirect, so start_url never
+    // triggers the cold-launch redirect bug regardless of auth state.
     start_url: "/",
     scope: "/",
     display: "standalone",
