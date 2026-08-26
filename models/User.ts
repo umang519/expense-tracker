@@ -5,6 +5,7 @@ export interface IUser extends Document {
   passwordHash: string;
   name?: string;
   currency: string;
+  role: "user" | "admin";
   avatarUrl?: string;
   avatarPublicId?: string;
   pendingEmail?: string;
@@ -39,6 +40,11 @@ const UserSchema = new Schema<IUser>(
     currency: {
       type: String,
       default: "INR",
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
     avatarUrl: { type: String },
     avatarPublicId: { type: String },

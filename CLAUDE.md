@@ -18,7 +18,11 @@ one-off transactions, and views monthly/yearly summaries. Currency defaults to I
   `RefreshToken` collection — see ROADMAP.md Phase 21). `proxy.ts` silently exchanges an expired
   access JWT for a new one via `POST /api/auth/refresh` when a refresh cookie is present, instead of
   redirecting to `/login`. Logout and account deletion must revoke the matching `RefreshToken` row,
-  not just clear cookies.
+  not just clear cookies. The JWT also carries a `role: "user" | "admin"` claim (ROADMAP.md Phase 26)
+  — resolved via `lib/adminAccess.ts`'s `resolveRole()` at login/verify-email/refresh time (self-heals
+  from the `ADMIN_EMAILS` env allowlist, no manual DB write needed) and re-signed into every new token.
+  `/admin/:path*` is gated on this claim in `proxy.ts` (pages) and independently in
+  `app/api/admin/stats/route.ts` (proxy's matcher doesn't cover `/api/**`).
 - **Zod** for validation (shared client + server). **Tailwind CSS** for styling. **TanStack Query** for client data. **Recharts** for charts.
 
 ## Commands

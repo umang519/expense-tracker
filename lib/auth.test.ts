@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { NextRequest } from "next/server";
 import {
   COOKIE_NAME,
@@ -6,6 +6,7 @@ import {
   getUserFromRequest,
   hashPassword,
   hashRefreshToken,
+  isAdminEmail,
   signJWT,
   verifyJWT,
   verifyPassword,
@@ -34,18 +35,24 @@ describe("password hashing", () => {
 
 describe("JWT", () => {
   it("round-trips a valid token", async () => {
-    const token = await signJWT({ sub: "user-1", email: "a@b.com" });
+    const token = await signJWT({ sub: "user-1", email: "a@b.com", role: "user" });
     const payload = await verifyJWT(token);
-    expect(payload).toMatchObject({ sub: "user-1", email: "a@b.com" });
+    expect(payload).toMatchObject({ sub: "user-1", email: "a@b.com", role: "user" });
+  });
+
+  it("round-trips an admin role", async () => {
+    const token = await signJWT({ sub: "user-1", email: "a@b.com", role: "admin" });
+    const payload = await verifyJWT(token);
+    expect(payload).toMatchObject({ role: "admin" });
   });
 
   it("rejects an expired token", async () => {
-    const token = await signJWT({ sub: "user-1", email: "a@b.com" }, -1);
+    const token = await signJWT({ sub: "user-1", email: "a@b.com", role: "user" }, -1);
     expect(await verifyJWT(token)).toBeNull();
   });
 
   it("rejects a tampered signature", async () => {
-    const token = await signJWT({ sub: "user-1", email: "a@b.com" });
+    const token = await signJWT({ sub: "user-1", email: "a@b.com", role: "user" });
     const [header, body] = token.split(".");
     const tampered = `${header}.${body}.tampered-signature`;
     expect(await verifyJWT(tampered)).toBeNull();
@@ -53,6 +60,29 @@ describe("JWT", () => {
 
   it("rejects a malformed token", async () => {
     expect(await verifyJWT("not-a-jwt")).toBeNull();
+  });
+});
+
+describe("isAdminEmail", () => {
+  const originalEnv = process.env.ADMIN_EMAILS;
+  afterEach(() => {
+    process.env.ADMIN_EMAILS = originalEnv;
+  });
+
+  it("matches an email in the allowlist, case-insensitively", () => {
+    process.env.ADMIN_EMAILS = "owner@example.com, second@example.com";
+    expect(isAdminEmail("Owner@Example.com")).toBe(true);
+    expect(isAdminEmail("second@example.com")).toBe(true);
+  });
+
+  it("rejects an email not in the allowlist", () => {
+    process.env.ADMIN_EMAILS = "owner@example.com";
+    expect(isAdminEmail("stranger@example.com")).toBe(false);
+  });
+
+  it("rejects everything when the allowlist is unset", () => {
+    delete process.env.ADMIN_EMAILS;
+    expect(isAdminEmail("owner@example.com")).toBe(false);
   });
 });
 
@@ -84,8 +114,17 @@ describe("getUserFromRequest", () => {
   });
 
   it("returns the user for a valid token cookie", async () => {
-    const token = await signJWT({ sub: "user-42", email: "u@example.com" });
+    const token = await signJWT({ sub: "user-42", email: "u@example.com", role: "user" });
     const result = await getUserFromRequest(fakeRequest({ [COOKIE_NAME]: token }));
-    expect(result).toEqual({ userId: "user-42", email: "u@example.com" });
+    expect(result).toEqual({ userId: "user-42", email: "u@example.com", role: "user" });
+  });
+
+  it('defaults role to "user" for a token issued before the role claim existed', async () => {
+    // Casts around signJWT's type to simulate a validly-signed token from
+    // before this claim existed — real old sessions are exactly this shape.
+    const legacyPayload = { sub: "user-42", email: "u@example.com" } as Parameters<typeof signJWT>[0];
+    const token = await signJWT(legacyPayload);
+    const result = await getUserFromRequest(fakeRequest({ [COOKIE_NAME]: token }));
+    expect(result?.role).toBe("user");
   });
 });

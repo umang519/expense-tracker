@@ -489,17 +489,26 @@ competitor.
   `localStorage`, read through `useSyncExternalStore` (same hydration-safe pattern as `ThemeToggle`)
   rather than `useEffect` + `setState`, which the project's lint config forbids.
 
-### Phase 26 — Minimal admin visibility ⏳ NOT STARTED
+### Phase 26 — Minimal admin visibility ✅ COMPLETE
 
-- `models/User.ts`: add `role: "user" | "admin"` (default `"user"`).
-- Bootstrap the first admin via an `ADMIN_EMAILS` env var allowlist checked at login/JWT-issue time
-  (`lib/auth.ts`) — avoids a manual DB write per deploy; document in README's env var list.
-- `proxy.ts`: extend `matcher` to cover `/admin/:path*`; gate on `role` baked into the JWT payload —
-  the Edge runtime can't hit Mongoose directly, so the claim has to travel in the token, same reasoning
-  as the existing refresh-token flow.
-- New `app/(app)/admin/page.tsx` + `app/api/admin/stats/route.ts` (role-checked server-side too, not
-  just at the proxy) — signups over time, active-user count, reusing the aggregation style already in
-  `lib/data/summary.ts`.
+- `models/User.ts`: added `role: "user" | "admin"` (default `"user"`).
+- `lib/auth.ts`: JWT payload now carries `role`; `isAdminEmail()` (pure, Edge-safe) checks the
+  `ADMIN_EMAILS` env allowlist. `lib/adminAccess.ts`'s `resolveRole()` (Node-only — writes to Mongo,
+  never imported by `proxy.ts`) self-heals an account to `role: "admin"` on login/verify-email/refresh
+  if its email is in the allowlist and it isn't already — no manual DB write needed to bootstrap the
+  first admin, documented in README's env var list.
+- `proxy.ts`: `matcher` now covers `/admin/:path*`; gates on `role` from the verified JWT payload — the
+  Edge runtime can't hit Mongoose directly, so the claim has to travel in the token, same reasoning as
+  the existing refresh-token flow. A token issued before this claim existed fails closed (redirected
+  away, not granted access) until it's refreshed.
+- New `lib/data/admin.ts` (`getAdminStats()` — total/verified/new-7d/new-30d users, 30-day active-user
+  count via `Expense.distinct("userId", ...)`, 14-day signup counts) reusing the aggregation style from
+  `lib/data/summary.ts`. The one deliberate exception to CLAUDE.md rule 1 (queries scoped by userId) —
+  explicitly role-gated, not a per-user data leak.
+- New `app/(app)/admin/page.tsx` (redirects non-admins itself, doesn't rely on `proxy.ts` alone) and
+  `app/api/admin/stats/route.ts` (independently role-checked — `proxy.ts`'s matcher only covers pages,
+  not `/api/**`).
+- Settings → Quick Links gets an "Admin" entry, visible only when `user.role === "admin"`.
 
 ### Phase 27 — Billing / Plan model — parked
 
