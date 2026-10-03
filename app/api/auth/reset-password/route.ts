@@ -31,6 +31,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   }
 
+  // The IP limit above is bypassed by rotating IPs; this per-account cap is
+  // what stops brute-forcing the 6-digit reset code (see verify-email).
+  const accountAllowed = await checkRateLimit("reset-password-account", email, 5, 15 * 60);
+  if (!accountAllowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again in 15 minutes." },
+      { status: 429 }
+    );
+  }
+
   await connectDB();
 
   const user = await User.findOne({ email });

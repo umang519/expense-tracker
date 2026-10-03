@@ -11,6 +11,7 @@ import {
   hashRefreshToken,
 } from "@/lib/auth";
 import { resolveRole } from "@/lib/adminAccess";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
 import RefreshToken from "@/models/RefreshToken";
 
@@ -18,7 +19,12 @@ function hashOtp(otp: string) {
   return crypto.createHash("sha256").update(otp).digest("hex");
 }
 
+const TOO_MANY = { error: "Too many attempts. Please try again in 15 minutes." };
+
 export async function POST(req: NextRequest) {
+  const ipAllowed = await checkRateLimit("verify-email", getClientIp(req), 10, 15 * 60);
+  if (!ipAllowed) return NextResponse.json(TOO_MANY, { status: 429 });
+
   const body = await req.json();
   const email = (body.email ?? "").trim().toLowerCase();
   const otp = (body.otp ?? "").trim();
@@ -26,6 +32,12 @@ export async function POST(req: NextRequest) {
   if (!email || !otp || otp.length !== 6) {
     return NextResponse.json({ error: "Email and 6-digit code are required" }, { status: 400 });
   }
+
+  // Per-account cap is what actually stops brute-forcing the 6-digit code:
+  // the IP limit alone is bypassed by rotating IPs. 5 guesses per 15 min
+  // against a code space of 900k makes guessing infeasible.
+  const accountAllowed = await checkRateLimit("verify-email-account", email, 5, 15 * 60);
+  if (!accountAllowed) return NextResponse.json(TOO_MANY, { status: 429 });
 
   await connectDB();
 
