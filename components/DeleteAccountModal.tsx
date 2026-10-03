@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { clearLocalUserState } from "@/lib/clientSession";
 
 interface Props {
   isOpen: boolean;
@@ -30,6 +31,8 @@ export default function DeleteAccountModal({ isOpen, onClose }: Props) {
     try {
       const res = await fetch("/api/auth/me", { method: "DELETE" });
       if (res.ok) {
+        // Account is gone — anything still queued offline has nowhere to go.
+        await clearLocalUserState();
         router.push("/login");
         router.refresh();
       } else {

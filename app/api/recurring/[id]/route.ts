@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { RecurringExpenseUpdateSchema } from "@/lib/validation";
+import { parseYmd } from "@/lib/recurring";
 import RecurringExpense from "@/models/RecurringExpense";
+import Category from "@/models/Category";
 import { Types } from "mongoose";
 
 type Params = { params: Promise<{ id: string }> };
@@ -24,18 +26,34 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   await connectDB();
 
+  // Same ownership check as POST — never let a template point at another
+  // user's (or an archived) category (CLAUDE.md rule 1).
+  if (parsed.data.categoryId !== undefined) {
+    if (!Types.ObjectId.isValid(parsed.data.categoryId)) {
+      return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+    }
+    const category = await Category.findOne({
+      _id: parsed.data.categoryId,
+      userId: auth.userId,
+      isArchived: false,
+    });
+    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
+
   const update: Record<string, unknown> = { ...parsed.data };
 
+  // Edits apply to upcoming entries only. lastGeneratedDate is deliberately
+  // left untouched: resetting it here (as this route used to) made the next
+  // generate run re-log every date since startDate — e.g. changing just the
+  // amount of a months-old weekday template duplicated months of expenses,
+  // because the edit form always re-sends the unchanged startDate.
   if (parsed.data.startDate) {
-    const [y, m, d] = parsed.data.startDate.split("-").map(Number);
-    update.startDate = new Date(Date.UTC(y, m - 1, d));
-    update.lastGeneratedDate = null;
+    update.startDate = parseYmd(parsed.data.startDate);
   }
 
   if ("endDate" in parsed.data) {
     if (parsed.data.endDate) {
-      const [ey, em, ed] = parsed.data.endDate.split("-").map(Number);
-      update.endDate = new Date(Date.UTC(ey, em - 1, ed));
+      update.endDate = parseYmd(parsed.data.endDate);
     } else {
       update.endDate = null;
     }

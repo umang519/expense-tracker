@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimit";
 import User from "@/models/User";
 
 function hashOtp(otp: string) {
@@ -11,6 +12,15 @@ function hashOtp(otp: string) {
 export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Caps guesses at the 6-digit code per account (see verify-email).
+  const allowed = await checkRateLimit("email-change-confirm", user.userId, 5, 15 * 60);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please try again in 15 minutes." },
+      { status: 429 }
+    );
+  }
 
   const body = await req.json();
   const otp = (body.otp ?? "").trim();

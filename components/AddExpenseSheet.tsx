@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Category, PopulatedExpense } from "@/lib/types";
 import { clientFetch } from "@/lib/client-fetch";
 import { enqueue } from "@/lib/offlineQueue";
+import { currencySymbol } from "@/lib/format";
+import { useCurrency } from "./CurrencyProvider";
 
 function todayString() {
   const d = new Date();
@@ -51,6 +53,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
   const qc = useQueryClient();
   const isEdit = !!initialExpense;
   const keepOpenRef = useRef(false);
+  const symbol = currencySymbol(useCurrency());
 
   const { data: allCategories = [] } = useQuery({
     queryKey: ["categories"],
@@ -312,7 +315,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
                   className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-500/10 active:bg-violet-100 transition-colors select-none"
                 >
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: exp.categoryId.color }} />
-                  <span className="font-semibold">₹{exp.amount}</span>
+                  <span className="font-semibold">{symbol}{exp.amount}</span>
                   <span className="text-gray-400 dark:text-gray-500">{exp.categoryId.name}{exp.note ? ` · ${exp.note}` : ""}</span>
                 </button>
               ))}
@@ -323,7 +326,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
         {/* Amount display */}
         <div className="px-5 pb-3 text-center">
           <div className={`text-4xl font-bold tracking-tight transition-colors ${amount ? "text-gray-900 dark:text-gray-100" : "text-gray-300 dark:text-gray-600"}`}>
-            ₹{amount || "0"}
+            {symbol}{amount || "0"}
           </div>
         </div>
 
@@ -387,7 +390,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
           <div className="px-5 pb-3">
             <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2.5">
-                ₹{mergeCandidate.amount} {mergeCandidate.categoryId.name} already logged on this date
+                {symbol}{mergeCandidate.amount} {mergeCandidate.categoryId.name} already logged on this date
               </p>
               <div className="flex gap-2">
                 <button
@@ -404,7 +407,7 @@ export default function AddExpenseSheet({ isOpen, onClose, initialExpense }: Pro
                   }
                   className="flex-1 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors disabled:opacity-50"
                 >
-                  {mergeMutation.isPending ? "Merging…" : `Merge → ₹${mergeCandidate.amount + (parseFloat(amount) || 0)}`}
+                  {mergeMutation.isPending ? "Merging…" : `Merge → ${symbol}${mergeCandidate.amount + (parseFloat(amount) || 0)}`}
                 </button>
                 <button
                   type="button"

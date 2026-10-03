@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adjacentMonths, currentMonth, formatAmount, monthLabel } from "./format";
+import { adjacentMonths, currencySymbol, currentMonth, formatAmount, monthLabel } from "./format";
 
 describe("formatAmount", () => {
   it("formats INR by default with no fraction digits", () => {
@@ -12,6 +12,21 @@ describe("formatAmount", () => {
 
   it("formats zero", () => {
     expect(formatAmount(0)).toBe("₹0");
+  });
+});
+
+describe("currencySymbol", () => {
+  it("defaults to the rupee sign", () => {
+    expect(currencySymbol()).toBe("₹");
+  });
+
+  it("returns the symbol for the given currency", () => {
+    expect(currencySymbol("USD")).toBe("$");
+    expect(currencySymbol("EUR")).toBe("€");
+  });
+
+  it("falls back to the code where there's no symbol", () => {
+    expect(currencySymbol("AED")).toBe("AED");
   });
 });
 

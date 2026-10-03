@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { PopulatedExpense, Category } from "@/lib/types";
 import { formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
+import { dequeue } from "@/lib/offlineQueue";
 import AddExpenseSheet from "./AddExpenseSheet";
 
 function formatDate(iso: string) {
@@ -63,15 +64,39 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
     };
   }, []);
 
+  function showDeleteError(msg: string) {
+    setDeleteError(msg);
+    setTimeout(() => setDeleteError(""), 4000);
+  }
+
+  function hideUndo() {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = null;
+    setUndoExpense(null);
+  }
+
+  // Deletes hit the server immediately. The previous design deferred the
+  // DELETE behind a 5s undo timer, which was silently dropped whenever the
+  // component unmounted or the page reloaded inside that window — and when
+  // the last expense was removed, the empty state hid the undo toast, so users
+  // navigated away and the expense "came back". Undo now re-creates instead.
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+    mutationFn: async (expense: PopulatedExpense) => {
+      const res = await fetch(`/api/expenses/${expense._id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
     },
-    onError: () => {
-      qc.invalidateQueries({ queryKey: ["expenses", month] });
-      setDeleteError("Could not delete. Please try again.");
-      setTimeout(() => setDeleteError(""), 4000);
+    onMutate: async (expense) => {
+      await qc.cancelQueries({ queryKey: ["expenses", month] });
+      const prev = qc.getQueryData<PopulatedExpense[]>(["expenses", month]);
+      qc.setQueryData<PopulatedExpense[]>(["expenses", month], (old) =>
+        (old ?? []).filter((e) => e._id !== expense._id)
+      );
+      return { prev };
+    },
+    onError: (_err, _expense, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["expenses", month], ctx.prev);
+      hideUndo();
+      showDeleteError("Could not delete. Please try again.");
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["expenses", month] });
@@ -79,33 +104,58 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
     },
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: async (expense: PopulatedExpense) => {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: expense.date.substring(0, 10),
+          categoryId: expense.categoryId._id,
+          amount: expense.amount,
+          note: expense.note || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to restore");
+    },
+    onError: () => showDeleteError("Could not undo. Please add the expense again."),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["expenses", month] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
+    },
+  });
+
   function handleDeleteConfirmed(expense: PopulatedExpense) {
-    if (undoTimerRef.current) {
-      clearTimeout(undoTimerRef.current);
-      if (undoExpense) deleteMutation.mutate(undoExpense._id);
-    }
-
-    qc.setQueryData<PopulatedExpense[]>(["expenses", month], (old) =>
-      (old ?? []).filter((e) => e._id !== expense._id)
-    );
-
-    setUndoExpense(expense);
     setActiveMenuId(null);
     setConfirmDeleteId(null);
 
+    // Not on the server yet — an add still in flight, or queued while offline.
+    if (expense._id.startsWith("optimistic-")) {
+      showDeleteError("Still saving — try again in a moment.");
+      return;
+    }
+    if (expense._id.startsWith("pending-")) {
+      dequeue(expense._id.slice("pending-".length));
+      qc.setQueryData<PopulatedExpense[]>(["expenses", month], (old) =>
+        (old ?? []).filter((e) => e._id !== expense._id)
+      );
+      return;
+    }
+
+    deleteMutation.mutate(expense);
+
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    setUndoExpense(expense);
     undoTimerRef.current = setTimeout(() => {
-      deleteMutation.mutate(expense._id);
       setUndoExpense(null);
       undoTimerRef.current = null;
     }, 5000);
   }
 
   function handleUndo() {
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    undoTimerRef.current = null;
-    qc.invalidateQueries({ queryKey: ["expenses", month] });
-    qc.invalidateQueries({ queryKey: ["summary"] });
-    setUndoExpense(null);
+    if (!undoExpense) return;
+    restoreMutation.mutate(undoExpense);
+    hideUndo();
   }
 
   // Client-side filtering
@@ -149,15 +199,6 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
     );
   }
 
-  if (expenses.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 text-center mt-2">
-        <p className="text-gray-400 dark:text-gray-500 text-sm">No expenses this month yet.</p>
-        <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">Tap + to add your first expense.</p>
-      </div>
-    );
-  }
-
   const groups = filtered.reduce<Record<string, PopulatedExpense[]>>((acc, e) => {
     const key = e.date.substring(0, 10);
     (acc[key] ??= []).push(e);
@@ -178,7 +219,17 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
         />
       )}
 
+      {/* Empty month — rendered inline (not an early return) so the undo and
+          error toasts below still show after deleting the last expense. */}
+      {expenses.length === 0 && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-8 text-center mt-2">
+          <p className="text-gray-400 dark:text-gray-500 text-sm">No expenses this month yet.</p>
+          <p className="text-gray-300 dark:text-gray-600 text-xs mt-1">Tap + to add your first expense.</p>
+        </div>
+      )}
+
       {/* Filter bar */}
+      {expenses.length > 0 && (
       <div className="flex items-center gap-2 mt-2 mb-1">
         <select
           value={filterCategoryId}
@@ -214,6 +265,7 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
           </svg>
         </a>
       </div>
+      )}
 
       {/* No-results state when filters are active */}
       {filtered.length === 0 && hasFilters && (
@@ -360,7 +412,8 @@ export default function ExpenseList({ month, currency = "INR", initialExpenses, 
           <span className="flex-1">Expense deleted</span>
           <button
             onClick={handleUndo}
-            className="text-violet-300 font-semibold hover:text-violet-200 py-0.5 px-2 rounded"
+            disabled={deleteMutation.isPending}
+            className="text-violet-300 font-semibold hover:text-violet-200 py-0.5 px-2 rounded disabled:opacity-50"
           >
             Undo
           </button>

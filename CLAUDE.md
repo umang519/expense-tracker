@@ -10,7 +10,7 @@ one-off transactions, and views monthly/yearly summaries. Currency defaults to I
 
 ## Stack
 
-- **Next.js 15 (App Router) + React 19 + TypeScript** — UI and backend in one app.
+- **Next.js 16 (App Router) + React 19 + TypeScript** — UI and backend in one app.
 - **Backend = Next.js Route Handlers** (`app/api/**/route.ts`), running on Node.js. Do NOT add a separate Express server.
 - **MongoDB Atlas + Mongoose** for persistence.
 - **Auth:** email + password. bcrypt for hashing. Two cookies: a short-lived (1-day) access JWT
@@ -28,7 +28,8 @@ one-off transactions, and views monthly/yearly summaries. Currency defaults to I
 ## Commands
 
 ```bash
-npm run dev      # local dev
+npm run dev      # local dev (port 3005)
+npm run test     # Vitest unit + integration (tests/integration/ — real route handlers, in-memory Mongo)
 npm run build    # production build
 npm run lint     # eslint
 npm run start    # run production build
@@ -104,6 +105,11 @@ Reports/aggregation → Major transactions → polish/PWA → deploy. See ROADMA
 ```
 MONGODB_URI=
 JWT_SECRET=
+SMTP_HOST= SMTP_PORT= SMTP_USERNAME= SMTP_PASSWORD=   # lib/email.ts (nodemailer, not Resend)
+CLOUDINARY_CLOUD_NAME= CLOUDINARY_API_KEY= CLOUDINARY_API_SECRET=   # avatars
+VAPID_PUBLIC_KEY= VAPID_PRIVATE_KEY= VAPID_EMAIL= CRON_SECRET=     # push reminders
+ADMIN_EMAILS=            # comma-separated admin allowlist (see lib/adminAccess.ts)
 SENTRY_DSN=              # error monitoring (server/edge) — unset locally is fine, SDK no-ops
 NEXT_PUBLIC_SENTRY_DSN=  # error monitoring (client)
 ```
+README.md has the full annotated list.

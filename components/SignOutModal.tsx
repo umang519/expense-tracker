@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { flushQueue, getQueue } from "@/lib/offlineQueue";
+import { clearLocalUserState } from "@/lib/clientSession";
 
 interface Props {
   isOpen: boolean;
@@ -14,12 +16,20 @@ export default function SignOutModal({ isOpen, onClose }: Props) {
 
   async function handleSignOut() {
     setLoading(true);
+    // Sync offline-queued expenses while this user's session still exists —
+    // after logout they'd either be lost or sync into the next account.
+    if (navigator.onLine) await flushQueue();
     await fetch("/api/auth/logout", { method: "POST" });
+    await clearLocalUserState();
     router.push("/login");
     router.refresh();
   }
 
   if (!isOpen) return null;
+
+  // Read on open (not in state) — localStorage is client-only, and this
+  // component only renders past the guard above once opened on the client.
+  const pendingCount = getQueue().length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -46,6 +56,15 @@ export default function SignOutModal({ isOpen, onClose }: Props) {
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
           You&apos;ll need to sign in again to access your expenses.
         </p>
+
+        {pendingCount > 0 && (
+          <p className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 -mt-3 mb-5">
+            {pendingCount} expense{pendingCount !== 1 ? "s" : ""} saved offline{" "}
+            {pendingCount !== 1 ? "haven't" : "hasn't"} synced yet. We&apos;ll try to sync{" "}
+            {pendingCount !== 1 ? "them" : "it"} now — if you&apos;re still offline,{" "}
+            {pendingCount !== 1 ? "they" : "it"} will be lost when you sign out.
+          </p>
+        )}
 
         <div className="flex gap-3">
           <button

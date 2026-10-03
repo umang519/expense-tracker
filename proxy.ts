@@ -12,7 +12,7 @@ function extractCookieValue(setCookies: string[], name: string): string | undefi
 
 // Merges freshly-refreshed Set-Cookie values into THIS request's own cookie
 // header, not just the outgoing response's. Every protected page (dashboard,
-// month, reports, categories, transactions, settings, admin) independently
+// month, reports, categories, transactions, recurring, settings, admin) independently
 // re-verifies the JWT itself via cookies() — without forwarding the refresh
 // into the request, that render still sees the old expired token and
 // redirects to /login on this very navigation, even though the refresh above
@@ -98,5 +98,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/month/:path*", "/reports/:path*", "/categories/:path*", "/transactions/:path*", "/settings/:path*", "/admin/:path*"],
+  matcher: ["/", "/dashboard/:path*", "/month/:path*", "/reports/:path*", "/categories/:path*", "/transactions/:path*", "/recurring/:path*", "/settings/:path*", "/admin/:path*"],
 };

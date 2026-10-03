@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { CategoryUpdateSchema } from "@/lib/validation";
+import { revalidateSummaryCache } from "@/lib/data/summary";
 import Category from "@/models/Category";
 import Expense from "@/models/Expense";
 import { Types } from "mongoose";
@@ -44,6 +45,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Category not found" }, { status: 404 });
   }
 
+  // Summaries $lookup the category's name/color, so a rename/recolor must
+  // expire them. (DELETE needs no revalidation: it only hard-deletes categories
+  // with no expenses, and archiving doesn't change what summaries show.)
+  revalidateSummaryCache(auth.userId);
   return NextResponse.json({ category });
 }
 

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatAmount } from "@/lib/format";
+import { currencySymbol, formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
+import { getDueDates, parseYmd } from "@/lib/recurring";
 
 interface Category {
   _id: string;
@@ -89,6 +90,7 @@ const FREQUENCIES: { value: FormState["frequency"]; label: string }[] = [
 
 export default function RecurringList({ currency = "INR" }: Props) {
   const qc = useQueryClient();
+  const symbol = currencySymbol(currency);
 
   const { data: entries = [], isLoading, isError } = useQuery({
     queryKey: ["recurring"],
@@ -211,6 +213,28 @@ export default function RecurringList({ currency = "INR" }: Props) {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  // New templates backfill every date from startDate to today on the next app
+  // open — make that explicit so a wrong start date can't silently log months
+  // of entries. (Edits never backfill; see the note shown in edit mode.)
+  const backfill = (() => {
+    if (editId || !form.startDate) return null;
+    const amt = parseFloat(form.amount);
+    const dates = getDueDates(
+      form.frequency,
+      parseYmd(form.startDate),
+      form.endDate ? parseYmd(form.endDate) : null,
+      null,
+      parseYmd(todayISO())
+    );
+    if (dates.length === 0) return null;
+    return {
+      count: dates.length,
+      total: amt > 0 ? amt * dates.length : null,
+      from: dates[0].toISOString(),
+      to: dates[dates.length - 1].toISOString(),
+    };
+  })();
+
   const startDateLabel =
     form.frequency === "monthly"
       ? "First occurrence (fixes the day of month)"
@@ -241,14 +265,15 @@ export default function RecurringList({ currency = "INR" }: Props) {
 
       {/* Amount */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none">₹</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none">{symbol}</span>
         <input
           type="number"
           inputMode="decimal"
           placeholder="0"
           value={form.amount}
           onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-          className="w-full pl-7 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+          style={{ paddingLeft: `calc(1rem + ${symbol.length}ch)` }}
+          className="w-full pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
         />
       </div>
 
@@ -311,6 +336,25 @@ export default function RecurringList({ currency = "INR" }: Props) {
         />
       </div>
 
+      {editId && (
+        <p className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/60 rounded-lg px-3 py-2">
+          Changes apply to upcoming entries only. Expenses already logged stay as they are and
+          won&apos;t be logged again.
+        </p>
+      )}
+
+      {backfill && (
+        <p className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+          The start date is in the past, so this will also log{" "}
+          <span className="font-semibold">
+            {backfill.count} past {backfill.count === 1 ? "entry" : "entries"}
+            {backfill.total !== null && ` (${formatAmount(backfill.total, currency)} total)`}
+          </span>{" "}
+          from {shortDate(backfill.from)} to {shortDate(backfill.to)}. Pick today&apos;s date if
+          you only want it to start from now.
+        </p>
+      )}
+
       {formError && <p className="text-xs text-red-500 dark:text-red-400">{formError}</p>}
 
       <div className="flex gap-2 pt-1">
@@ -319,7 +363,13 @@ export default function RecurringList({ currency = "INR" }: Props) {
           disabled={isSaving}
           className="flex-1 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition-colors"
         >
-          {isSaving ? "Saving…" : editId ? "Save changes" : "Add"}
+          {isSaving
+            ? "Saving…"
+            : editId
+            ? "Save changes"
+            : backfill
+            ? `Add & log ${backfill.count} past`
+            : "Add"}
         </button>
         <button
           type="button"

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import { getUserFromRequest, verifyPassword, hashPassword } from "@/lib/auth";
+import {
+  getUserFromRequest,
+  verifyPassword,
+  hashPassword,
+  hashRefreshToken,
+  REFRESH_COOKIE_NAME,
+} from "@/lib/auth";
 import { ChangePasswordSchema } from "@/lib/validation";
 import User from "@/models/User";
+import RefreshToken from "@/models/RefreshToken";
 
 export async function POST(req: NextRequest) {
   const auth = await getUserFromRequest(req);
@@ -31,6 +38,15 @@ export async function POST(req: NextRequest) {
 
   user.passwordHash = await hashPassword(newPassword);
   await user.save();
+
+  // Sign out every other "remember me" session, but keep this device's — the
+  // user just proved they know the password here.
+  const rawRefreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value;
+  const keepHash = rawRefreshToken ? await hashRefreshToken(rawRefreshToken) : null;
+  await RefreshToken.deleteMany({
+    userId: user._id,
+    ...(keepHash ? { tokenHash: { $ne: keepHash } } : {}),
+  });
 
   return NextResponse.json({ ok: true });
 }

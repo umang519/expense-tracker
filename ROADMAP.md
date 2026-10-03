@@ -22,7 +22,7 @@ transactions, and view monthly/yearly summaries — all from a phone or laptop.
 
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | **Next.js 15 (App Router) + React 19 + TypeScript** | One codebase for UI + API |
+| Framework | **Next.js 16 (App Router) + React 19 + TypeScript** | One codebase for UI + API |
 | Backend | **Next.js Route Handlers (run on Node.js)** | This *is* the Node backend — no separate server needed |
 | Database | **MongoDB Atlas (free tier) + Mongoose** | As requested; schemas + aggregation for summaries |
 | Auth | **Email + password**, bcrypt hashing, JWT in an httpOnly cookie | Self-owned, simple, secure |
@@ -218,6 +218,9 @@ otherwise existing users get locked out. Execute the four steps below in order.
 - Install `resend` package (`npm i resend`).
 - Create `lib/email.ts` — a thin wrapper: `sendEmail({ to, subject, html })` that calls the Resend SDK.
 - No UI change yet; this just wires up the plumbing.
+- **As shipped:** `lib/email.ts` uses **nodemailer over plain SMTP** instead of the Resend SDK
+  (works with any provider). Env vars: `SMTP_HOST`, `SMTP_PORT` (default 587),
+  `SMTP_USERNAME` (also the From address), `SMTP_PASSWORD` — not `RESEND_API_KEY`.
 
 #### Step 2 — "Update email" in Settings (fix existing bad emails first)
 - Add an "Update email" card in `/settings` (Settings page → below name/currency section).

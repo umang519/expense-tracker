@@ -1,31 +1,29 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useSyncExternalStore } from "react";
 import { getQueue, QUEUE_CHANGED_EVENT } from "@/lib/offlineQueue";
 
+// navigator.onLine and the localStorage queue only exist in the browser. Read
+// via useSyncExternalStore so the server (and the hydration pass) assume
+// "online, nothing queued", then React switches to the real values without a
+// hydration mismatch — a useState initializer would also run during SSR.
+function subscribe(callback: () => void): () => void {
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
+  window.addEventListener(QUEUE_CHANGED_EVENT, callback);
+  return () => {
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+    window.removeEventListener(QUEUE_CHANGED_EVENT, callback);
+  };
+}
+
+const getOnline = () => navigator.onLine;
+const getPendingCount = () => getQueue().length;
+
 export default function OfflineIndicator() {
-  const [online, setOnline] = useState(() =>
-    typeof window !== "undefined" ? navigator.onLine : true
-  );
-  const [pendingCount, setPendingCount] = useState(() =>
-    typeof window !== "undefined" ? getQueue().length : 0
-  );
-
-  const refresh = useCallback(() => {
-    setOnline(navigator.onLine);
-    setPendingCount(getQueue().length);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("online", refresh);
-    window.addEventListener("offline", refresh);
-    window.addEventListener(QUEUE_CHANGED_EVENT, refresh);
-    return () => {
-      window.removeEventListener("online", refresh);
-      window.removeEventListener("offline", refresh);
-      window.removeEventListener(QUEUE_CHANGED_EVENT, refresh);
-    };
-  }, [refresh]);
+  const online = useSyncExternalStore(subscribe, getOnline, () => true);
+  const pendingCount = useSyncExternalStore(subscribe, getPendingCount, () => 0);
 
   if (online && pendingCount === 0) return null;
 

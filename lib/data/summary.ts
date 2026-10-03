@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { unstable_cache, revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import Expense from "@/models/Expense";
 import Transaction from "@/models/Transaction";
@@ -15,6 +15,16 @@ const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct
 // rather than waiting out the TTL.
 export function summaryCacheTag(userId: string): string {
   return `summary-${userId}`;
+}
+
+// Must expire immediately, not `revalidateTag(tag, "max")`: "max" is
+// stale-while-revalidate, so the client's refetch right after a mutation got
+// the *old* summary back (e.g. a deleted expense still counted in the total)
+// until a later request picked up the background refresh. `updateTag` would
+// be the idiomatic read-your-own-writes call, but it's Server-Actions-only;
+// `{ expire: 0 }` is the Route Handler equivalent.
+export function revalidateSummaryCache(userId: string): void {
+  revalidateTag(summaryCacheTag(userId), { expire: 0 });
 }
 
 export interface BudgetRef {

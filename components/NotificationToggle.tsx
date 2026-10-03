@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 type Status = "loading" | "unsupported" | "denied" | "subscribed" | "unsubscribed";
 
@@ -13,26 +13,34 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return output;
 }
 
-// Synchronous checks run only on the client (lazy initializer)
-function getInitialStatus(): Status {
-  if (typeof window === "undefined") return "loading";
+type Capability = "pending" | "ok" | "unsupported" | "denied";
+
+// Synchronous browser checks. Read via useSyncExternalStore rather than a
+// useState initializer: initializers also run during SSR, where the answer is
+// unknowable, and a different first client render ("denied" in incognito,
+// "unsupported" in some private modes) is a hydration mismatch.
+function getCapability(): Capability {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return "unsupported";
   if (Notification.permission === "denied") return "denied";
-  return "loading"; // async check needed
+  return "ok";
 }
+const noopSubscribe = () => () => {};
+const getServerCapability = (): Capability => "pending";
 
 export default function NotificationToggle() {
-  const [status, setStatus] = useState<Status>(getInitialStatus);
+  const capability = useSyncExternalStore(noopSubscribe, getCapability, getServerCapability);
+  const [subStatus, setStatus] = useState<Status>("loading");
   const [busy, setBusy] = useState(false);
+  const status: Status =
+    capability === "pending" ? "loading" : capability === "ok" ? subStatus : capability;
 
   // Async: find out if the user already has an active subscription
   useEffect(() => {
-    if (status !== "loading") return;
+    if (getCapability() !== "ok") return;
     navigator.serviceWorker.ready.then(async (reg) => {
       const sub = await reg.pushManager.getSubscription();
       setStatus(sub ? "subscribed" : "unsubscribed");
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function subscribe() {
