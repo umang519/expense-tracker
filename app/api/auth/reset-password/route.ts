@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import User from "@/models/User";
+import RefreshToken from "@/models/RefreshToken";
 
 function hashOtp(otp: string) {
   return crypto.createHash("sha256").update(otp).digest("hex");
@@ -66,6 +67,10 @@ export async function POST(req: NextRequest) {
     passwordHash,
     $unset: { resetOtp: 1, resetOtpExpiresAt: 1 },
   });
+
+  // A reset usually means the account may be compromised (or the password was
+  // forgotten on a shared device) — sign out every "remember me" session.
+  await RefreshToken.deleteMany({ userId: user._id });
 
   return NextResponse.json({ ok: true });
 }

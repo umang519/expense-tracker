@@ -448,6 +448,9 @@ export default function SettingsForm({ user, appVersion }: { user: User; appVers
               <p className="text-xs text-red-600 dark:text-red-400 mt-1">{pwFieldErrors.confirm}</p>
             )}
           </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            You&apos;ll stay signed in here; other devices will be signed out.
+          </p>
           <StatusButton status={pwStatus} label="Change password" />
         </form>
       </section>

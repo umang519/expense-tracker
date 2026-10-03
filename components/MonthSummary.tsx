@@ -67,14 +67,17 @@ interface Props {
 
 export default function MonthSummary({ month, currency = "INR", initialData, isNewUser = false }: Props) {
   const [addOpen, setAddOpen] = useState(false);
-  const { data, isLoading, isFetching, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["summary", "monthly", month],
     queryFn: () => fetchSummary(month),
     staleTime: 30_000,
     initialData,
   });
 
-  if (isLoading || isFetching) {
+  // Skeleton only when there's nothing to show yet. A background refetch (after
+  // every add/edit/delete) keeps the current numbers on screen until the new
+  // ones arrive, instead of blanking the card.
+  if (isLoading) {
     return (
       <div className="space-y-3 mb-4">
         <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse" />
@@ -83,7 +86,9 @@ export default function MonthSummary({ month, currency = "INR", initialData, isN
     );
   }
 
-  if (isError) {
+  // A failed background refetch keeps the last good data — only show the error
+  // when there's nothing else to show.
+  if (isError && !data) {
     return (
       <div className="mb-4 bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/50 p-6 text-center">
         <p className="text-sm text-red-500 dark:text-red-400">Could not load summary. Try refreshing.</p>

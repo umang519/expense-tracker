@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Password reset</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Your password has been updated. You can now sign in with your new password.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Your password has been updated and you&apos;ve been signed out of all devices. You can now sign in with your new password.</p>
           <button
             onClick={() => router.push("/login")}
             className="w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
