@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { BudgetUpsertSchema } from "@/lib/validation";
-import { summaryCacheTag } from "@/lib/data/summary";
+import { revalidateSummaryCache } from "@/lib/data/summary";
 import Budget from "@/models/Budget";
 import { Types } from "mongoose";
 
@@ -41,6 +40,6 @@ export async function POST(req: NextRequest) {
     { upsert: true, new: true }
   );
 
-  revalidateTag(summaryCacheTag(auth.userId), "max");
+  revalidateSummaryCache(auth.userId);
   return NextResponse.json({ budget }, { status: 200 });
 }

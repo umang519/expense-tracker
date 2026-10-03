@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { getUserFromRequest } from "@/lib/auth";
 import { BudgetUpdateSchema } from "@/lib/validation";
-import { summaryCacheTag } from "@/lib/data/summary";
+import { revalidateSummaryCache } from "@/lib/data/summary";
 import Budget from "@/models/Budget";
 import { Types } from "mongoose";
 
@@ -34,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
-  revalidateTag(summaryCacheTag(auth.userId), "max");
+  revalidateSummaryCache(auth.userId);
   return NextResponse.json({ budget });
 }
 
@@ -52,6 +51,6 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const budget = await Budget.findOneAndDelete({ _id: id, userId: auth.userId });
   if (!budget) return NextResponse.json({ error: "Budget not found" }, { status: 404 });
 
-  revalidateTag(summaryCacheTag(auth.userId), "max");
+  revalidateSummaryCache(auth.userId);
   return NextResponse.json({ deleted: true });
 }
