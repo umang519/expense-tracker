@@ -43,4 +43,36 @@ export function dequeue(id: string) {
   dispatch();
 }
 
+export function clearQueue() {
+  localStorage.removeItem(QUEUE_KEY);
+  dispatch();
+}
+
+// POSTs every queued expense; successful ones are dequeued, failures (still
+// offline, server error) stay queued. Returns how many were synced.
+export async function flushQueue(): Promise<number> {
+  let synced = 0;
+  for (const item of getQueue()) {
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: item.date,
+          categoryId: item.categoryId,
+          amount: item.amount,
+          note: item.note || undefined,
+        }),
+      });
+      if (res.ok) {
+        dequeue(item.id);
+        synced++;
+      }
+    } catch {
+      // Still offline for this item — leave in queue
+    }
+  }
+  return synced;
+}
+
 export const QUEUE_CHANGED_EVENT = QUEUE_EVENT;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PasswordInput from "@/components/PasswordInput";
+import { clearCachedUserData } from "@/lib/clientSession";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,6 +41,9 @@ export default function LoginPage() {
       return;
     }
 
+    // A previous user's session may have just expired (no explicit sign-out),
+    // leaving their pages/API responses in the service worker cache.
+    await clearCachedUserData();
     router.push("/dashboard");
     router.refresh();
   }

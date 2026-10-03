@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { clearCachedUserData } from "@/lib/clientSession";
 
 function VerifyEmailForm() {
   const router = useRouter();
@@ -41,6 +42,8 @@ function VerifyEmailForm() {
         body: JSON.stringify({ email, otp }),
       });
       if (res.ok) {
+        // New account signing in — see login page.
+        await clearCachedUserData();
         router.push("/dashboard");
         router.refresh();
       } else {
