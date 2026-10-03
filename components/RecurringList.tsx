@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatAmount } from "@/lib/format";
+import { currencySymbol, formatAmount } from "@/lib/format";
 import { clientFetch } from "@/lib/client-fetch";
 import { getDueDates, parseYmd } from "@/lib/recurring";
 
@@ -90,6 +90,7 @@ const FREQUENCIES: { value: FormState["frequency"]; label: string }[] = [
 
 export default function RecurringList({ currency = "INR" }: Props) {
   const qc = useQueryClient();
+  const symbol = currencySymbol(currency);
 
   const { data: entries = [], isLoading, isError } = useQuery({
     queryKey: ["recurring"],
@@ -264,14 +265,15 @@ export default function RecurringList({ currency = "INR" }: Props) {
 
       {/* Amount */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none">₹</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm select-none">{symbol}</span>
         <input
           type="number"
           inputMode="decimal"
           placeholder="0"
           value={form.amount}
           onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-          className="w-full pl-7 pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+          style={{ paddingLeft: `calc(1rem + ${symbol.length}ch)` }}
+          className="w-full pr-3 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
         />
       </div>
 

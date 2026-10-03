@@ -4,6 +4,7 @@ import { getUserFromRequest } from "@/lib/auth";
 import { BudgetUpsertSchema } from "@/lib/validation";
 import { revalidateSummaryCache } from "@/lib/data/summary";
 import Budget from "@/models/Budget";
+import Category from "@/models/Category";
 import { Types } from "mongoose";
 
 export async function GET(req: NextRequest) {
@@ -28,7 +29,17 @@ export async function POST(req: NextRequest) {
 
   const { categoryId, amount } = parsed.data;
 
+  // null = overall monthly budget; otherwise it must be one of the user's active categories.
+  if (categoryId !== null && !Types.ObjectId.isValid(categoryId)) {
+    return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+  }
+
   await connectDB();
+
+  if (categoryId !== null) {
+    const category = await Category.findOne({ _id: categoryId, userId: auth.userId, isArchived: false });
+    if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+  }
 
   // Upsert: one budget per user+category
   const budget = await Budget.findOneAndUpdate(

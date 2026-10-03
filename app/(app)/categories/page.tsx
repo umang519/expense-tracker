@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { clientFetch } from "@/lib/client-fetch";
-import { formatAmount } from "@/lib/format";
+import { currencySymbol, formatAmount } from "@/lib/format";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 interface Category {
   _id: string;
@@ -41,6 +42,7 @@ async function fetchBudgets(): Promise<Budget[]> {
 
 export default function CategoriesPage() {
   const qc = useQueryClient();
+  const currency = useCurrency();
   const { data: categories = [], isLoading, isError } = useQuery({
     queryKey: ["categories"],
     queryFn: fetchCategories,
@@ -104,6 +106,10 @@ export default function CategoriesPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categories"] });
+      // These embed the category's name/color, so a rename/recolor makes them stale too.
+      qc.invalidateQueries({ queryKey: ["summary"] });
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["recurring"] });
       setEditingId(null);
       setArchiveConfirmId(null);
     },
@@ -278,7 +284,7 @@ export default function CategoriesPage() {
                             )}
                             className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-medium hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors"
                           >
-                            {formatAmount(budgetMap.get(cat._id)!.amount, "INR")}
+                            {formatAmount(budgetMap.get(cat._id)!.amount, currency)}
                           </button>
                         ) : (
                           <button
@@ -357,7 +363,7 @@ export default function CategoriesPage() {
                   )}
                   className="text-xs px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-medium hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors"
                 >
-                  {formatAmount(overallBudget.amount, "INR")}
+                  {formatAmount(overallBudget.amount, currency)}
                 </button>
               ) : (
                 <button
@@ -534,6 +540,7 @@ function BudgetInlineForm({
   saving: boolean;
 }) {
   const [value, setValue] = useState(current ? String(current.amount) : "");
+  const symbol = currencySymbol(useCurrency());
 
   function handleSave() {
     const n = parseFloat(value);
@@ -546,7 +553,7 @@ function BudgetInlineForm({
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Monthly budget</p>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">₹</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-gray-500">{symbol}</span>
           <input
             type="number"
             inputMode="decimal"
@@ -555,7 +562,8 @@ function BudgetInlineForm({
             onChange={(e) => setValue(e.target.value)}
             placeholder="e.g. 5000"
             autoFocus
-            className="w-full pl-8 pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-900"
+            style={{ paddingLeft: `calc(1rem + ${symbol.length}ch)` }}
+            className="w-full pr-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-900"
           />
         </div>
         <button

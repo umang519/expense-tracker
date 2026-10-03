@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { formatAmount } from "@/lib/format";
+import { currencySymbol, formatAmount } from "@/lib/format";
+import { useCurrency } from "@/components/CurrencyProvider";
 import { clientFetch } from "@/lib/client-fetch";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -38,6 +39,7 @@ async function fetchTransactions(): Promise<Transaction[]> {
 
 export default function TransactionsPage() {
   const qc = useQueryClient();
+  const currency = useCurrency();
   const [sheetMode, setSheetMode] = useState<null | "add" | Transaction>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -134,19 +136,19 @@ export default function TransactionsPage() {
             <div className="text-center">
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Spent</p>
               <p className="text-sm font-bold text-red-500 dark:text-red-400">
-                {formatAmount(totalSpent)}
+                {formatAmount(totalSpent, currency)}
               </p>
             </div>
             <div className="text-center border-x border-gray-100 dark:border-gray-800">
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Invested</p>
               <p className="text-sm font-bold text-violet-500 dark:text-violet-400">
-                {formatAmount(totalInvested)}
+                {formatAmount(totalInvested, currency)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Received</p>
               <p className="text-sm font-bold text-emerald-500">
-                {formatAmount(totalReceived)}
+                {formatAmount(totalReceived, currency)}
               </p>
             </div>
           </div>
@@ -189,7 +191,7 @@ export default function TransactionsPage() {
                   {year}
                 </span>
                 {/* <span className="text-xs text-gray-400 dark:text-gray-500">
-                  Spent {formatAmount(yearSpent)} · Invested {formatAmount(yearInvested)} · Received {formatAmount(yearReceived)}
+                  Spent {formatAmount(yearSpent, currency)} · Invested {formatAmount(yearInvested, currency)} · Received {formatAmount(yearReceived, currency)}
                 </span> */}
               </div>
 
@@ -229,7 +231,7 @@ export default function TransactionsPage() {
                     {/* Amount */}
                     <span className={`text-sm font-bold flex-shrink-0 ${colorClasses.amount}`}>
                       {tx.type === "Dr" ? "−" : "+"}
-                      {formatAmount(tx.amount)}
+                      {formatAmount(tx.amount, currency)}
                     </span>
 
                     {/* More options — always visible (not hover-dependent) */}
@@ -352,6 +354,7 @@ function TransactionSheet({
   const [isInvestment, setIsInvestment] = useState(initial?.isInvestment ?? false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const currency = useCurrency();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -468,7 +471,7 @@ function TransactionSheet({
           {/* Amount */}
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Amount (₹)
+              Amount ({currencySymbol(currency)})
             </label>
             <input
               type="number"
